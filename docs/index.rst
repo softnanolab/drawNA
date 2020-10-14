@@ -4,60 +4,84 @@
    contain the root `toctree` directive.
 
 Welcome to drawNA's documentation!
-==================================
+**********************************
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-drawNA
-======
+`drawNA`
+========
 .. automodule:: drawNA
    :members:
 
+`drawNA.polygons`
+-----------------
 .. automodule:: drawNA.polygons
    :members:
 
+`drawNA.readers`
+-----------------
 .. automodule:: drawNA.readers
    :members:
 
+`drawNA.tools`
+-----------------
 .. automodule:: drawNA.tools
    :members:
 
-drawNA oxDNA
-============
+`drawNA.oxdna`
+==============
 .. automodule:: drawNA.oxdna
    :members:
 
+`drawNA.oxdna.nucleotide`
+-------------------------
 .. automodule:: drawNA.oxdna.nucleotide
    :members:
 
+`drawNA.oxdna.strand`
+---------------------
 .. automodule:: drawNA.oxdna.strand
    :members:
 
+`drawNA.oxdna.system`
+---------------------
 .. automodule:: drawNA.oxdna.system
    :members:
 
+`drawNA.oxdna.utils`
+--------------------
 .. automodule:: drawNA.oxdna.utils
    :members:
 
-drawNA Lattice
-==============
+`drawNA.lattice`
+================
 .. automodule:: drawNA.lattice
    :members:
 
+`drawNA.lattice._lattice`
+-------------------------
 .. automodule:: drawNA.lattice._lattice
    :members: 
 
+`drawNA.lattice.edge`
+---------------------
 .. automodule:: drawNA.lattice.edge
    :members:
 
+`drawNA.lattice.node`
+---------------------
 .. automodule:: drawNA.lattice.node
    :members:
 
+`drawNA.lattice.route`
+----------------------
 .. automodule:: drawNA.lattice.route
    :members:
 
+`drawNA.lattice.utils`
+----------------------
 .. automodule:: drawNA.lattice.utils
    :members:
 
