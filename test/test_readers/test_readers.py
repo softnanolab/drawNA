@@ -6,7 +6,7 @@ import pandas as pd
 from drawNA.readers import Reader, OXDNAReader, LAMMPSDataReader, LAMMPSDumpReader
 from drawNA.oxdna import System
 
-ROOT = "/".join(path.abspath(path.expanduser(__file__)).split("/")[:-1])                 
+ROOT = "/".join(path.realpath(__file__).split("/")[:-1])                 
 
 def test_Reader():
     table = pd.DataFrame({
