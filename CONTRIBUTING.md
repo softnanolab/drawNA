@@ -26,6 +26,11 @@ def complex(arg_1: int, arg_2: float) -> pd.DataFrame:
 
 ## Directory Structure
 
+### `.github`
+
+- Workflows stored in `.github/workflows`
+- Used for continuous integration to do testing
+
 ### `img`
 
 - Contains media used for examples and documentation
@@ -92,12 +97,6 @@ def complex(arg_1: int, arg_2: float) -> pd.DataFrame:
 - Standard usage
 - Note that all generated files should be on here except those for testing
 - Make sure no `.DS_Store` files are added ever!
-
-### `.travis.yml`
-
-- Currently CI is done using this file alone
-- CI is only done on `xenial`
-- CI is likely to migrate to GitHub workflows so keep an eye out for `.github/workflows` in the main directory
 
 ### `CONTRIBUTING.md`
 
