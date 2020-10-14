@@ -1,5 +1,5 @@
 from os import path, environ
-import platform
+import sys
 import re
 
 import numpy as np
