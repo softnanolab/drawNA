@@ -1,7 +1,7 @@
 
 # `drawNA` 
 
-[![Build Status](https://travis-ci.com/softnanolab/drawNA.svg?branch=master)](https://travis-ci.com/softnanolab/drawNA)
+[![Build Status](https://github.com/softnanolab/drawNA/workflows/Build/badge.svg)](https://github.com/softnanolab/drawNA)
 
 **Autonomous generation of DNA Origami nanostructures** 
 

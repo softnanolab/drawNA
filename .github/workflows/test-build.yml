@@ -1,6 +1,6 @@
 # Builds using pip and tests using pytest
 
-name: Build drawNA and test
+name: Build
 
 on: push
 
