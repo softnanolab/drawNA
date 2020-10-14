@@ -13,8 +13,8 @@ ROOT = "/".join(path.abspath(__file__).split("/")[:-1])
 # needed for windows CI
 if environ.get('CI', False):
     if re.findall(r"win[0-9][0-9]", sys.platform):
-        if ROOT[0] == '/':
-            ROOT = './test/test_readers' + ROOT
+        if not re.findall('test[/|\\]test_readers', ROOT)
+            ROOT = 'test/test_readers'
 
 def test_Reader():
     table = pd.DataFrame({
