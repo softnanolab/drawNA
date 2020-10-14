@@ -1,6 +1,6 @@
 # Builds using pip and tests using pytest
 
-name: Build and Test Jupyter Notebooks
+name: Build drawNA and test
 
 on: push
 
@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        py: [3.5, 3.6, 3.7, 3.8]
+        py: [3.6, 3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v2
