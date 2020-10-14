@@ -1,5 +1,5 @@
 from os import path, environ
-import sys
+import platform
 import re
 
 import numpy as np
@@ -13,7 +13,7 @@ ROOT = "/".join(path.abspath(__file__).split("/")[:-1])
 # needed for windows CI
 if environ.get('CI', False):
     if re.findall(r"win[0-9][0-9]", sys.platform):
-        if not re.findall('test[/|\\]test_readers', ROOT)
+        if not re.findall('test[/|\\]test_readers', ROOT):
             ROOT = 'test/test_readers'
 
 def test_Reader():
