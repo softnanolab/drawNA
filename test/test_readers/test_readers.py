@@ -1,4 +1,6 @@
-from os import path
+from os import path, environ
+import sys
+import re
 
 import numpy as np
 import pandas as pd
@@ -6,7 +8,13 @@ import pandas as pd
 from drawNA.readers import Reader, OXDNAReader, LAMMPSDataReader, LAMMPSDumpReader
 from drawNA.oxdna import System
 
-ROOT = "/".join(path.realpath(__file__).split("/")[:-1])                 
+ROOT = "/".join(path.abspath(__file__).split("/")[:-1])
+
+# needed for windows CI
+if environ.get('CI', False):
+    if re.findall('win', sys.platform):
+        if ROOT[0] == '/':
+            ROOT = './test/test_readers' + ROOT
 
 def test_Reader():
     table = pd.DataFrame({
