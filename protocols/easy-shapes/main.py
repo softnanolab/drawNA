@@ -1,5 +1,5 @@
 import numpy as np
-from drawNA.polygons import BoundaryPolygon, make_polygon
+from drawNA.polygons import BoundaryPolygon
 
 ###---stored arrays of some shapes---###
 square = np.array([[0, 0, 0], [0.0, 1.0, 0.0], [1.0, 1.0, 0.0], [1.0, 0.0, 0.0]])
@@ -25,7 +25,8 @@ star = np.array(
     ]
 )
 
-
-###---run the program---###
-SHAPE = BoundaryPolygon(star)
-make_polygon(star, SHAPE)
+ if __name__ == "__main__":
+    print("Generating polygon object...")
+    polygon = BoundaryPolygon(star)
+    print("Plotting object...")
+    polygon.plot2D()
