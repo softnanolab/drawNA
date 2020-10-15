@@ -8,23 +8,32 @@ from os import path
 
 ROOT = "/".join(path.abspath(__file__).split("/")[:-1])
 
-def generate(polygon_vertices: np.ndarray, DNAout: str = None, PLOTout: str = None):
+def generate(polygon_vertices: np.ndarray, title: str = "polygon_name", DNAout: bool = False, PLOTout: bool = False):
+    print(f"{title}: Making polygon...")
     polygon = BoundaryPolygon(polygon_vertices)
-    lattice = polygon.dna_snake(straightening_factor=5, start_side="left")
+    print(f"{title}: ...constructing scaffolding lattice...")
+    lattice = polygon.dna_snake(straightening_factor=5, start_side="left", grid_size = [0.34, 2.5])
+    print(f"{title}: ...calculating route.")
     route = lattice.route()
 
+    
     if PLOTout:
+        print(f"{title}: Generating and saving lattice plot.")
         plot_list = [lattice.quantised_array, lattice.crossover_coords]
-        lattice.plot(plot_list, poly = True)
+        lattice.plot(plot_list, poly = True, fout = title, root = ROOT + "/lattice-plot_out/", aspect = 6)
     route.plot()
 
-    # if DNAout:
-    #     system = route.system()
-    #     system.write_oxDNA(prefix = DNAout, root=ROOT)
+    if DNAout:
+        system = route.system()
+        print(f"{title}: Generating and saving oxDNA files.")
+        system.write_oxDNA(prefix = title, root=ROOT+"/oxDNA_out/")
+        print(f"{title}: Generating and saving LAMMPS files.")
+        system.write_LAMMPS(prefix = title, root=ROOT+"/LAMMPS_out/")
 
 
-if __name__ == "__main__":
-    square = np.array([[0.0, 0.0, 0.0], [10.0, 0.0, 0.0], [10.0, 4.0, 0.0], [0.0, 4.0, 0.0]])
+def main():
+    """ Polygon Vertices """
+    square = np.array([[0.0, 0.0, 0.0], [10.0, 0.0, 0.0], [10.0, 10.0, 0.0], [0.0, 10.0, 0.0]])
     trap = np.array([[0.,0.,0.],[1.5,6.,0.],[8.5,6.,0.],[10.,0.,0.]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
     no = 0.85
@@ -42,15 +51,29 @@ if __name__ == "__main__":
     ])
     octagon = np.array([[1.0,-0.85,0],[2.0, -0.85, 0],[2.5, 0, 0],[2.5, 1,0],
     [2.0, 1.85,0],[1.0,1.85,0],[0.5,1,0],[0.5, 0.0,0.0]])
-    my_polygon = np.array([[0.,0.,0.],[3,10.,0.],[7,10.,0.],[10.,0.,0.]])
 
-    generate(square, DNAout="square", PLOTout="squares")
-    generate(trap*6, DNAout="trapezium", PLOTout="trapeziums")
-    generate(hexagon*10, DNAout="hexagon", PLOTout="hexagons")
-    generate(plus*6, DNAout="plus", PLOTout="plus")
-    generate(diamond*10, DNAout="diamond", PLOTout="diamond")
-    generate(trapREV*5, DNAout="trapezium_rev",PLOTout="trapezium_rev")
-    generate(stacked_I*12, DNAout="plus", PLOTout="plus")
-    generate(octagon*12, DNAout="oct", PLOTout="oct")
-    generate(triangle*2, DNAout="triangle",PLOTout="triangle")
-    generate(my_polygon*2, PLOTout="my_poly")
+    """ Generating Scaffold Strands """
+    print("\n ----- Generating scaffold for a square: \n")
+    generate(square*4, title = "square", DNAout=True, PLOTout=True)
+
+    print("\n ----- Generating scaffold for a trapezium: \n")
+    generate(trap*6, title="trapezium", DNAout=True, PLOTout=True)
+
+    print("\n ----- Generating scaffold for a hexagon: \n")
+    generate(hexagon*15, title="hexagon", DNAout=True, PLOTout=True)
+
+    print("\n ----- Generating scaffold for a plus: \n")
+    generate(plus*10, title="plus", DNAout=True, PLOTout=True)
+
+    print("\n ----- Generating scaffold for a modular shape 'stacked_I': \n")    
+    generate(stacked_I*12, title="stacked_I", DNAout=True, PLOTout=True)
+
+    """ Uncomment/add/modify generate commands to try other shapes """
+    # generate(diamond*10, title="diamond", DNAout=True, PLOTout=True)
+    # generate(trapREV*5, title="trapezium_rev",DNAout=True, PLOTout=True)
+    # generate(octagon*12, title="oct", DNAout=True, PLOTout=True)
+    # generate(triangle*2, title="triangle",DNAout=True, PLOTout=True)
+
+if __name__ == "__main__":
+    main()
+    print("\n NOTE: See DNA_Snake.py to understand how to generate a scaffold for a given shape")
