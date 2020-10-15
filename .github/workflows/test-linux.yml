@@ -1,6 +1,6 @@
 # Builds using pip and tests using pytest
 
-name: Linux 3.6 | 3.7 | 3.8
+name: Linux
 
 on: push
 

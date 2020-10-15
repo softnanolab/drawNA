@@ -1,6 +1,6 @@
 # Builds using pip and tests using pytest
 
-name: Windows 3.6 | 3.7 | 3.8
+name: Windows
 
 on: push
 
