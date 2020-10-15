@@ -21,8 +21,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install sphinx numpy scipy pandas matplotlib shapely meshio
         pip install pytest-cov
-        pip install .
     - name: Coverage
       run: |
-        py.test --cov-report=xml --cov=drawNA test/
+        pip install .
+        pytest --cov-report=xml --cov=drawNA test/
         bash <(curl -s https://codecov.io/bash)
