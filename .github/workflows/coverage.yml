@@ -23,6 +23,7 @@ jobs:
         pip install pytest-cov
     - name: Coverage
       run: |
+        unset GITHUB_ACTION
         pip install .
         pytest --cov-report=xml --cov=drawNA test/
         bash <(curl -s https://codecov.io/bash)
