@@ -21,4 +21,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install sphinx
     - name: Make docs
-      run: cd docs/ && make html
+      run: |
+        make -C docs/ html
+        touch docs/_build/html/.nojekyll
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@3.6.2
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages # The branch the action should deploy to.
+        FOLDER: docs/_build/html # The folder the action should deploy.
+        CLEAN: true # Automatically remove deleted files from the deploy branch
+      
