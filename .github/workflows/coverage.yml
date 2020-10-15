@@ -24,5 +24,5 @@ jobs:
         pip install .
     - name: Coverage
       run: |
-        py.test --cov-report=xml --cov=. test/
+        py.test --cov-report=xml --cov=.
         bash <(curl -s https://codecov.io/bash)
