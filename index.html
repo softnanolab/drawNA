@@ -185,37 +185,37 @@
               <ul class="md-nav__list">
         <li class="md-nav__item"><a href="#module-drawNA" class="md-nav__link"><cite>drawNA</cite></a><nav class="md-nav">
               <ul class="md-nav__list">
-        <li class="md-nav__item"><a href="#drawna-polygons" class="md-nav__link"><cite>drawNA.polygons</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.polygons" class="md-nav__link"><cite>drawNA.polygons</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-readers" class="md-nav__link"><cite>drawNA.readers</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.readers" class="md-nav__link"><cite>drawNA.readers</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-tools" class="md-nav__link"><cite>drawNA.tools</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.tools" class="md-nav__link"><cite>drawNA.tools</cite></a>
         </li></ul>
             </nav>
         </li>
-        <li class="md-nav__item"><a href="#drawna-oxdna" class="md-nav__link"><cite>drawNA.oxdna</cite></a><nav class="md-nav">
+        <li class="md-nav__item"><a href="#module-drawNA.oxdna" class="md-nav__link"><cite>drawNA.oxdna</cite></a><nav class="md-nav">
               <ul class="md-nav__list">
-        <li class="md-nav__item"><a href="#drawna-oxdna-nucleotide" class="md-nav__link"><cite>drawNA.oxdna.nucleotide</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.oxdna.nucleotide" class="md-nav__link"><cite>drawNA.oxdna.nucleotide</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-oxdna-strand" class="md-nav__link"><cite>drawNA.oxdna.strand</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.oxdna.strand" class="md-nav__link"><cite>drawNA.oxdna.strand</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-oxdna-system" class="md-nav__link"><cite>drawNA.oxdna.system</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.oxdna.system" class="md-nav__link"><cite>drawNA.oxdna.system</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-oxdna-utils" class="md-nav__link"><cite>drawNA.oxdna.utils</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.oxdna.utils" class="md-nav__link"><cite>drawNA.oxdna.utils</cite></a>
         </li></ul>
             </nav>
         </li>
-        <li class="md-nav__item"><a href="#drawna-lattice" class="md-nav__link"><cite>drawNA.lattice</cite></a><nav class="md-nav">
+        <li class="md-nav__item"><a href="#module-drawNA.lattice" class="md-nav__link"><cite>drawNA.lattice</cite></a><nav class="md-nav">
               <ul class="md-nav__list">
-        <li class="md-nav__item"><a href="#drawna-lattice-lattice" class="md-nav__link"><cite>drawNA.lattice._lattice</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.lattice._lattice" class="md-nav__link"><cite>drawNA.lattice._lattice</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-lattice-edge" class="md-nav__link"><cite>drawNA.lattice.edge</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.lattice.edge" class="md-nav__link"><cite>drawNA.lattice.edge</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-lattice-node" class="md-nav__link"><cite>drawNA.lattice.node</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.lattice.node" class="md-nav__link"><cite>drawNA.lattice.node</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-lattice-route" class="md-nav__link"><cite>drawNA.lattice.route</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.lattice.route" class="md-nav__link"><cite>drawNA.lattice.route</cite></a>
         </li>
-        <li class="md-nav__item"><a href="#drawna-lattice-utils" class="md-nav__link"><cite>drawNA.lattice.utils</cite></a>
+        <li class="md-nav__item"><a href="#module-drawNA.lattice.utils" class="md-nav__link"><cite>drawNA.lattice.utils</cite></a>
         </li></ul>
             </nav>
         </li></ul>
@@ -242,46 +242,547 @@
 
 <span id="drawna"></span><h2 id="module-drawNA"><cite>drawNA</cite><a class="headerlink" href="#module-drawNA" title="Permalink to this headline">¶</a></h2>
 
-<h3 id="drawna-polygons"><cite>drawNA.polygons</cite><a class="headerlink" href="#drawna-polygons" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-polygons"></span><h3 id="module-drawNA.polygons"><cite>drawNA.polygons</cite><a class="headerlink" href="#module-drawNA.polygons" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="drawNA.polygons.BoundaryPolygon">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.polygons.</code><code class="sig-name descname">BoundaryPolygon</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vertices</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/polygons.html#BoundaryPolygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.polygons.BoundaryPolygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>A BoundaryPolygon is a cyclic combination of 3 or more edges, which
+result in a closed Polygon</p>
+<p>The first vertex on the starting edge = the last vertex on the final edge</p>
+<dl class="py method">
+<dt id="drawNA.polygons.BoundaryPolygon.edges">
+<em class="property">property </em><code class="sig-name descname">edges</code><a class="headerlink" href="#drawNA.polygons.BoundaryPolygon.edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate over all vertices and return a list of Edge instances</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.polygons.BoundaryPolygon.plot2D">
+<code class="sig-name descname">plot2D</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ax</span><span class="p">:</span> <span class="n">matplotlib.axes._axes.Axes</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fout</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/polygons.html#BoundaryPolygon.plot2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.polygons.BoundaryPolygon.plot2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assumes that the shape is 2D and lies on the z=0 plane.</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.polygons.BoundaryPolygon.write_PLY">
+<code class="sig-name descname">write_PLY</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fout</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">comments</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/polygons.html#BoundaryPolygon.write_PLY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.polygons.BoundaryPolygon.write_PLY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the BoundaryPolygon to a ASCII PLY File.</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt id="drawNA.polygons.Edge">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.polygons.</code><code class="sig-name descname">Edge</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vertex_1</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">vertex_2</span><span class="p">:</span> <span class="n">list</span></em>, <em class="sig-param"><span class="n">edge_kind</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/polygons.html#Edge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.polygons.Edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>An Edge is a combination of two vertices and stores geometric information about this connection</p>
+</dd></dl>
+<dl class="py class">
+<dt id="drawNA.polygons.Vertex">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.polygons.</code><code class="sig-name descname">Vertex</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/polygons.html#Vertex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.polygons.Vertex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Geometric point in space.</p>
+</dd></dl>
 
 
-<h3 id="drawna-readers"><cite>drawNA.readers</cite><a class="headerlink" href="#drawna-readers" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-readers"></span><h3 id="module-drawNA.readers"><cite>drawNA.readers</cite><a class="headerlink" href="#module-drawNA.readers" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="drawNA.readers.LAMMPSDumpReader">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.readers.</code><code class="sig-name descname">LAMMPSDumpReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fnames</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/readers.html#LAMMPSDumpReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.readers.LAMMPSDumpReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>LAMMPS DumpFile reader designed specifically for LAMMPS simulations
+that have used the oxDNA or oxDNA2 forcefields, and have data/dump
+files configured as per the literature (i.e. not customised)</p>
+<p>LAMMPSDumpReader subclasses LAMMPSDataReader and is also a subclass
+of Reader, which LAMMPSDataReader also subclasses. This architecture
+is slightly confusing but results in very concise code for this class</p>
+<p>The reason for subclassing LAMMPSDataReader is because the configuration
+data file is needed to generate the bonds, which cannot be stored in a
+dump file.</p>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.readers.quat_to_matrix">
+<code class="sig-prename descclassname">drawNA.readers.</code><code class="sig-name descname">quat_to_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row</span><span class="p">:</span> <span class="n">pandas.core.series.Series</span></em><span class="sig-paren">)</span> → numpy.ndarray<a class="reference internal" href="_modules/drawNA/readers.html#quat_to_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.readers.quat_to_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Converts a pd.Series which has entries:</dt><dd><p>[[‘qw’, ‘qi’, ‘qj’, ‘qk’]]</p>
+</dd>
+</dl>
+<p>from a quaternion to a matrix rotation and returns
+it as a np.ndarray.</p>
+</dd></dl>
 
 
-<h3 id="drawna-tools"><cite>drawNA.tools</cite><a class="headerlink" href="#drawna-tools" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-tools"></span><h3 id="module-drawNA.tools"><cite>drawNA.tools</cite><a class="headerlink" href="#module-drawNA.tools" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="drawNA.tools.DNAEdge">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.tools.</code><code class="sig-name descname">DNAEdge</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vertex_1</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">vertex_2</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">theta</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/tools.html#DNAEdge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.tools.DNAEdge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract class that allows subclasses to generate oxDNA Strand
+instances along a vector.</p>
+<dl class="py method">
+<dt id="drawNA.tools.DNAEdge.length">
+<em class="property">property </em><code class="sig-name descname">length</code><a class="headerlink" href="#drawNA.tools.DNAEdge.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>The length of the edge in oxdna units (i think)</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.tools.DNAEdge.node">
+<code class="sig-name descname">node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_3p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#drawNA.tools.DNANode" title="drawNA.tools.DNANode">drawNA.tools.DNANode</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">node_5p</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#drawNA.tools.DNANode" title="drawNA.tools.DNANode">drawNA.tools.DNANode</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> → <a class="reference internal" href="#drawNA.tools.DNANode" title="drawNA.tools.DNANode">drawNA.tools.DNANode</a><a class="reference internal" href="_modules/drawNA/tools.html#DNAEdge.node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.tools.DNAEdge.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a DNANode for the opposite end of the DNANode provided in
+parameters</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.tools.DNAEdge.nt_length">
+<em class="property">property </em><code class="sig-name descname">nt_length</code><a class="headerlink" href="#drawNA.tools.DNAEdge.nt_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>The length of the edge in units of nucleotides</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.tools.DNAEdge.perp_vector">
+<em class="property">property </em><code class="sig-name descname">perp_vector</code><a class="headerlink" href="#drawNA.tools.DNAEdge.perp_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perpendicular vector which lies in the xy plane</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.tools.DNAEdge.segments">
+<code class="sig-name descname">segments</code><span class="sig-paren">(</span><span class="sig-paren">)</span> → float<a class="reference internal" href="_modules/drawNA/tools.html#DNAEdge.segments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.tools.DNAEdge.segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>There are 2.5 segments in every unit of oxDNA distance.</p>
+<p>Each segment represents a Nucleotide</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.tools.DNAEdge.summary">
+<em class="property">property </em><code class="sig-name descname">summary</code><a class="headerlink" href="#drawNA.tools.DNAEdge.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extended equivalent of self.__repr__</p>
+</dd></dl>
+</dd></dl>
+<dl class="py class">
+<dt id="drawNA.tools.DNANode">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.tools.</code><code class="sig-name descname">DNANode</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/tools.html#DNANode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.tools.DNANode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract class for use with DNAEdge that helps to determine
+angles and vectors needed to generate stable structures.</p>
+<dl class="py method">
+<dt id="drawNA.tools.DNANode.angle">
+<em class="property">property </em><code class="sig-name descname">angle</code><a class="headerlink" href="#drawNA.tools.DNANode.angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the angle between the two vectors
+leaving the Node in radians</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.tools.DNANode.vector_3p">
+<em class="property">property </em><code class="sig-name descname">vector_3p</code><a class="headerlink" href="#drawNA.tools.DNANode.vector_3p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vector entering/leaving the node from the 3’ direction</p>
+<p>vector_3p and vector_5p follow on from each other which
+means that they cannot start/finish at the same point</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.tools.DNANode.vector_5p">
+<em class="property">property </em><code class="sig-name descname">vector_5p</code><a class="headerlink" href="#drawNA.tools.DNANode.vector_5p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vector leaving/entering the node from the 5’ direction</p>
+<p>vector_3p and vector_5p follow on from each other which
+means that they cannot start/finish at the same point</p>
+</dd></dl>
+</dd></dl>
 
 
 
-<h2 id="drawna-oxdna"><cite>drawNA.oxdna</cite><a class="headerlink" href="#drawna-oxdna" title="Permalink to this headline">¶</a></h2>
+<span id="drawna-oxdna"></span><h2 id="module-drawNA.oxdna"><cite>drawNA.oxdna</cite><a class="headerlink" href="#module-drawNA.oxdna" title="Permalink to this headline">¶</a></h2>
 
-<h3 id="drawna-oxdna-nucleotide"><cite>drawNA.oxdna.nucleotide</cite><a class="headerlink" href="#drawna-oxdna-nucleotide" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-oxdna-nucleotide"></span><h3 id="module-drawNA.oxdna.nucleotide"><cite>drawNA.oxdna.nucleotide</cite><a class="headerlink" href="#module-drawNA.oxdna.nucleotide" title="Permalink to this headline">¶</a></h3>
+<p>Management and Storage of oxDNA nucleotides</p>
+<dl class="py class">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.oxdna.nucleotide.</code><code class="sig-name descname">Nucleotide</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">pos_com</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">a1</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">a3</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">v</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">array([0.0, 0.0, 0.0])</span></em>, <em class="sig-param"><span class="n">L</span><span class="p">:</span> <span class="n">numpy.ndarray</span> <span class="o">=</span> <span class="default_value">array([0.0, 0.0, 0.0])</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/nucleotide.html#Nucleotide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Nucleotide is a single oxDNA particle that forms a DNA strand
+Can be added to a strand using StrandObject.add_nucleotide</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>- 'A'</strong> (<em>base</em>) – </p></li>
+<li><p><strong>'T'</strong> – </p></li>
+<li><p><strong>or 'G'</strong> (<em>'C'</em>) – </p></li>
+<li><p><strong>- Center of mass position vector</strong> (<em>pos_com</em>) – </p></li>
+<li><p><strong>- Unit vector indicating orientation of backbone with respect to base</strong> (<em>a1</em>) – </p></li>
+<li><p><strong>- Unit vector indicating orientation</strong> (<em>a3</em>) – </p></li>
+<li><p><strong>- Linear velocity vector</strong> (<em>v</em>) – </p></li>
+<li><p><strong>- Angular velocity vector</strong> (<em>L</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Attributes/Properties:</dt><dd><p>_base - ‘A’, ‘T’, ‘C’ or ‘G’
+_a1 - Unit vector indicating orientation of backbone with respect to base
+_a3 - Unit vector indicating orientation (tilting) of base with respect to backbone
+_v - Linear velocity vector
+_L - Angular velocity vector
+pos_com - centre of mass
+pos_back - backbone position
+pos_base - position of base
+pos_stack - stacking direction
+series - table entry for writing conf and top files</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.lammps">
+<em class="property">property </em><code class="sig-name descname">lammps</code><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.lammps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of Series containing the following
+information needed to write a LAMMPS configuration
+data file</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.make_5p">
+<code class="sig-name descname">make_5p</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">base</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">angle</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.626</span></em>, <em class="sig-param"><span class="n">rise</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.39</span></em><span class="sig-paren">)</span> → <a class="reference internal" href="#drawNA.oxdna.nucleotide.Nucleotide" title="drawNA.oxdna.nucleotide.Nucleotide">drawNA.oxdna.nucleotide.Nucleotide</a><a class="reference internal" href="_modules/drawNA/oxdna/nucleotide.html#Nucleotide.make_5p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.make_5p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new Nucleotide in the 5’ direction. The angle used
+for rotating the a1 vector can be specified in radians.</p>
+<p>Args:</p>
+<dl class="simple">
+<dt>base</dt><dd><p>standard string base</p>
+</dd>
+<dt>angle (0.626)</dt><dd><p>angle of a1 rotation around a3 axis in radians</p>
+</dd>
+<dt>rise (0.390)</dt><dd><p>difference in a3 direction between nucleotides</p>
+</dd>
+</dl>
+<p>Returns:</p>
+<p>A new Nucleotide generated to be in the preferred orientation
+in the 5’ direction</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.make_across">
+<code class="sig-name descname">make_across</code><span class="sig-paren">(</span><span class="sig-paren">)</span> → <a class="reference internal" href="#drawNA.oxdna.nucleotide.Nucleotide" title="drawNA.oxdna.nucleotide.Nucleotide">drawNA.oxdna.nucleotide.Nucleotide</a><a class="reference internal" href="_modules/drawNA/oxdna/nucleotide.html#Nucleotide.make_across"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.make_across" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns:</p>
+<p>A Nucleotide across (aka complementary)</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.pos_back">
+<em class="property">property </em><code class="sig-name descname">pos_back</code><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.pos_back" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the position of the backbone site</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.pos_back_rel">
+<em class="property">property </em><code class="sig-name descname">pos_back_rel</code><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.pos_back_rel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the position of the backbone centroid relative to the centre of mass
+i.e. it will be a vector pointing from the c.o.m. to the backbone</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.pos_base">
+<em class="property">property </em><code class="sig-name descname">pos_base</code><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.pos_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the position of the base site</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.pos_stack">
+<em class="property">property </em><code class="sig-name descname">pos_stack</code><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.pos_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the position the stacking site</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.quaternion">
+<em class="property">property </em><code class="sig-name descname">quaternion</code><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.quaternion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the quaternion used to create a LAMMPS configuration</p>
+<p>Taken from <a class="reference external" href="https://github.com/lorenzo-rovigatti/tacoxDNA/src/libs/oxDNA_LAMMPS.py">https://github.com/lorenzo-rovigatti/tacoxDNA/src/libs/oxDNA_LAMMPS.py</a></p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.nucleotide.Nucleotide.series">
+<em class="property">property </em><code class="sig-name descname">series</code><a class="headerlink" href="#drawNA.oxdna.nucleotide.Nucleotide.series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a pd.Series object containing the information
+needed for writing a row in pd.DataFrame that will
+be used for writing to file.</p>
+</dd></dl>
+</dd></dl>
 
 
-<h3 id="drawna-oxdna-strand"><cite>drawNA.oxdna.strand</cite><a class="headerlink" href="#drawna-oxdna-strand" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-oxdna-strand"></span><h3 id="module-drawNA.oxdna.strand"><cite>drawNA.oxdna.strand</cite><a class="headerlink" href="#module-drawNA.oxdna.strand" title="Permalink to this headline">¶</a></h3>
+<p>Storage and Management of oxDNA strands via the Strand
+class</p>
+<dl class="py class">
+<dt id="drawNA.oxdna.strand.Strand">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.oxdna.strand.</code><code class="sig-name descname">Strand</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nucleotides</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/strand.html#Strand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.strand.Strand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collection of nucleotides in the 3’ -&gt; 5’ direction
+Can be added to the system using SystemObject.add_strand</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nucleotides</strong> (<em>[</em><em>]</em>) – </p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Attributes/Properties:</dt><dd><p>index - strand_id
+sequence - string sequence of bases
+nucleotides - list of Nucleotides
+dataframe - table of values for top and conf files
+copy - get a copy of a Strand instance</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.strand.Strand.bonds">
+<em class="property">property </em><code class="sig-name descname">bonds</code><a class="headerlink" href="#drawNA.oxdna.strand.Strand.bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dataframe containing the information needed to write
+the bonds section of a LAMMPS configuration data file</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.strand.Strand.dataframe">
+<em class="property">property </em><code class="sig-name descname">dataframe</code><a class="headerlink" href="#drawNA.oxdna.strand.Strand.dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pd.Dataframe which can be used to write
+the information for both the configuration and
+topology files.</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.strand.Strand.lammps">
+<em class="property">property </em><code class="sig-name descname">lammps</code><a class="headerlink" href="#drawNA.oxdna.strand.Strand.lammps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of DataFrames containing the following
+information needed to write a LAMMPS configuration
+data file</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.strand.Strand.nucleotides">
+<em class="property">property </em><code class="sig-name descname">nucleotides</code><a class="headerlink" href="#drawNA.oxdna.strand.Strand.nucleotides" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the list of nucleotides, and allocates
+the strand index to each nucleotide for its
+Nucleotide.series property.</p>
+</dd></dl>
+</dd></dl>
 
 
-<h3 id="drawna-oxdna-system"><cite>drawNA.oxdna.system</cite><a class="headerlink" href="#drawna-oxdna-system" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-oxdna-system"></span><h3 id="module-drawNA.oxdna.system"><cite>drawNA.oxdna.system</cite><a class="headerlink" href="#module-drawNA.oxdna.system" title="Permalink to this headline">¶</a></h3>
+<p>oxDNA system class - contains tools to manage, read and write
+oxDNA simulation configurations.</p>
+<dl class="py class">
+<dt id="drawNA.oxdna.system.System">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.oxdna.system.</code><code class="sig-name descname">System</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">box</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">time</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">E_pot</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">E_kin</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.system.System" title="Permalink to this definition">¶</a></dt>
+<dd><p>oxDNA simulation system, a container for strands which
+are composed of nucleotides.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>- the box size of the system</strong> (<em>box</em>) – </p></li>
+<li><p><strong>- Time of the system</strong> (<em>time</em>) – </p></li>
+<li><p><strong>- Potential energy</strong> (<em>E_pot</em>) – </p></li>
+<li><p><strong>- Kinetic energy</strong> (<em>E_kin</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.system.System.add_strand">
+<code class="sig-name descname">add_strand</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addition</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#drawNA.oxdna.strand.Strand" title="drawNA.oxdna.strand.Strand">drawNA.oxdna.strand.Strand</a></span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/system.html#System.add_strand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.system.System.add_strand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add strand(s) to the system</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>- accepted as Strand objects</strong><strong> or </strong><strong>a List of Strands</strong> (<em>addition</em>) – </p></li>
+<li><p><strong>index</strong> (<em>default = None</em>) – </p></li>
+<li><p><strong>Strand inserted at location given</strong> (<em>otherwise</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.system.System.add_strands">
+<code class="sig-name descname">add_strands</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">strand_obj</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/system.html#System.add_strands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.system.System.add_strands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add multiple strands to the system. Use a list of strands with
+an index indicating where they start, or a dictionary where
+the key is an integer and the value is a strand.</p>
+<p>strand_lists are added in reverse order
+to preserve original list order</p>
+<p>strand_dicts are added in normal order
+to preserve dictionary keys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>strand_obj</strong> (<em>-</em>) – list or dict of strands</p></li>
+<li><p><strong>index</strong> (<em>-</em>) – index to start adding list</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.system.System.bonds">
+<em class="property">property </em><code class="sig-name descname">bonds</code><a class="headerlink" href="#drawNA.oxdna.system.System.bonds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the total number of bonds in the system,
+used for writing LAMMPS configuration data files.</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.system.System.lammps">
+<em class="property">property </em><code class="sig-name descname">lammps</code><a class="headerlink" href="#drawNA.oxdna.system.System.lammps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a DataFrame containing the
+information needed to write a LAMMPS configuration
+data file</p>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.system.System.write_LAMMPS">
+<code class="sig-name descname">write_LAMMPS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'out'</span></em>, <em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'.'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/system.html#System.write_LAMMPS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.system.System.write_LAMMPS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes lammps.*.conf which is a configuration data
+file needed to run a lammps simulation.</p>
+<dl class="simple">
+<dt>Parameters;</dt><dd><p>prefix (‘out’) : prefix to output file</p>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.oxdna.system.System.write_oxDNA">
+<code class="sig-name descname">write_oxDNA</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">prefix</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'out'</span></em>, <em class="sig-param"><span class="n">root</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'.'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/system.html#System.write_oxDNA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.system.System.write_oxDNA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes two files oxdna.*.conf and oxdna.*.top for the
+configuration file and topology file required
+to run a simulation using oxDNA</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prefix</strong> (<em>'out'</em>) – prefix to output files</p>
+</dd>
+</dl>
+</dd></dl>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.oxdna.system.lammps_string">
+<code class="sig-prename descclassname">drawNA.oxdna.system.</code><code class="sig-name descname">lammps_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataframe</span><span class="p">:</span> <span class="n">pandas.core.frame.DataFrame</span></em><span class="sig-paren">)</span> → str<a class="reference internal" href="_modules/drawNA/oxdna/system.html#lammps_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.system.lammps_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats the dataframes needed for writing the
+lammps dataframe to the appropriate file format.</p>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.oxdna.system.oxDNA_string">
+<code class="sig-prename descclassname">drawNA.oxdna.system.</code><code class="sig-name descname">oxDNA_string</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataframe</span><span class="p">:</span> <span class="n">pandas.core.frame.DataFrame</span></em><span class="sig-paren">)</span> → str<a class="reference internal" href="_modules/drawNA/oxdna/system.html#oxDNA_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.system.oxDNA_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats the dataframes needed for writing the topology
+and configuration dataframes to the appropriate
+file format</p>
+</dd></dl>
 
 
-<h3 id="drawna-oxdna-utils"><cite>drawNA.oxdna.utils</cite><a class="headerlink" href="#drawna-oxdna-utils" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-oxdna-utils"></span><h3 id="module-drawNA.oxdna.utils"><cite>drawNA.oxdna.utils</cite><a class="headerlink" href="#module-drawNA.oxdna.utils" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="drawNA.oxdna.utils.get_rotation_matrix">
+<code class="sig-prename descclassname">drawNA.oxdna.utils.</code><code class="sig-name descname">get_rotation_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">theta</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span> → numpy.ndarray<a class="reference internal" href="_modules/drawNA/oxdna/utils.html#get_rotation_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.utils.get_rotation_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a rotation matrix for rotating an angle theta
+(rad) around an axis vector</p>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.oxdna.utils.next_5p">
+<code class="sig-prename descclassname">drawNA.oxdna.utils.</code><code class="sig-name descname">next_5p</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">position</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">a1</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">a3</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">angle</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">rise</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/utils.html#next_5p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.utils.next_5p" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the pos_com for a new nucleotide in the 5’ direction</p>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.oxdna.utils.round_to_multiple">
+<code class="sig-prename descclassname">drawNA.oxdna.utils.</code><code class="sig-name descname">round_to_multiple</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n</span></em>, <em class="sig-param"><span class="n">mo</span><span class="o">=</span><span class="default_value">0.34</span></em>, <em class="sig-param"><span class="n">decimal_places</span><span class="o">=</span><span class="default_value">2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/oxdna/utils.html#round_to_multiple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.oxdna.utils.round_to_multiple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function rounds to the nearest multiple of value given
+Returns output to (default) 2 decimal places</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>--- value</strong> (<em>n</em>) – </p></li>
+<li><p><strong>--- "multiple_of" is the value</strong> (<em>mo</em>) – </p></li>
+<li><p><strong>want to round to a multiple of</strong> (<em>we</em>) – </p></li>
+<li><p><strong>--- no. of decimals to return</strong> (<em>decimal_places</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 
 
-<h2 id="drawna-lattice"><cite>drawNA.lattice</cite><a class="headerlink" href="#drawna-lattice" title="Permalink to this headline">¶</a></h2>
+<span id="drawna-lattice"></span><h2 id="module-drawNA.lattice"><cite>drawNA.lattice</cite><a class="headerlink" href="#module-drawNA.lattice" title="Permalink to this headline">¶</a></h2>
 
-<h3 id="drawna-lattice-lattice"><cite>drawNA.lattice._lattice</cite><a class="headerlink" href="#drawna-lattice-lattice" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-lattice-lattice"></span><h3 id="module-drawNA.lattice._lattice"><cite>drawNA.lattice._lattice</cite><a class="headerlink" href="#module-drawNA.lattice._lattice" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="drawNA.lattice._lattice.all_same">
+<code class="sig-prename descclassname">drawNA.lattice._lattice.</code><code class="sig-name descname">all_same</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">items</span></em><span class="sig-paren">)</span> → bool<a class="reference internal" href="_modules/drawNA/lattice/_lattice.html#all_same"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice._lattice.all_same" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if all elements of a list are equal</p>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.lattice._lattice.modify_lattice_row">
+<code class="sig-prename descclassname">drawNA.lattice._lattice.</code><code class="sig-name descname">modify_lattice_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">grid</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">difference</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">change_side</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'yes'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/_lattice.html#modify_lattice_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice._lattice.modify_lattice_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the lattice sites for a given row in the <cite>grid</cite> by
+adding or removing the number of sites equal to the value which
+is stored in <cite>difference</cite> for that row</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>---</strong> (<em>change_side</em>) – </p></li>
+<li><p><strong>---</strong> – </p></li>
+<li><p><strong>---</strong> – </p></li>
+<li><p><strong>can be given</strong> (<em>arguments</em>) – </p></li>
+<li><p><strong>adjustments will only be made</strong> (<em>where</em>) – </p></li>
+<li><p><strong>the prescribed side</strong> (<em>on</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<p>e.g. a difference of -5 or +11, remove (1 -&gt; 0) or add (0 -&gt; 1)
+to the lattice row, respectively. Each removal/addition occurs on
+the opposite side of the lattice than the previous removal/addition</p>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.lattice._lattice.side">
+<code class="sig-prename descclassname">drawNA.lattice._lattice.</code><code class="sig-name descname">side</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row_no</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">R</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/_lattice.html#side"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice._lattice.side" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns either ‘onlyleft’ or ‘onlyright’ depending on
+which row we are modifying, i.e. row0 will always be modified
+at its end so if R = True, then right is the end of row0,
+row1 will always be modified at the opposite side to row0</p>
+</dd></dl>
 
 
-<h3 id="drawna-lattice-edge"><cite>drawNA.lattice.edge</cite><a class="headerlink" href="#drawna-lattice-edge" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-lattice-edge"></span><h3 id="module-drawNA.lattice.edge"><cite>drawNA.lattice.edge</cite><a class="headerlink" href="#module-drawNA.lattice.edge" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="drawNA.lattice.edge.LatticeEdge">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.lattice.edge.</code><code class="sig-name descname">LatticeEdge</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vertex_1</span></em>, <em class="sig-param"><span class="n">vertex_2</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/edge.html#LatticeEdge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.edge.LatticeEdge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 
-<h3 id="drawna-lattice-node"><cite>drawNA.lattice.node</cite><a class="headerlink" href="#drawna-lattice-node" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-lattice-node"></span><h3 id="module-drawNA.lattice.node"><cite>drawNA.lattice.node</cite><a class="headerlink" href="#module-drawNA.lattice.node" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="drawNA.lattice.node.LatticeNode">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.lattice.node.</code><code class="sig-name descname">LatticeNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/node.html#LatticeNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.node.LatticeNode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 
-<h3 id="drawna-lattice-route"><cite>drawNA.lattice.route</cite><a class="headerlink" href="#drawna-lattice-route" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-lattice-route"></span><h3 id="module-drawNA.lattice.route"><cite>drawNA.lattice.route</cite><a class="headerlink" href="#module-drawNA.lattice.route" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="drawNA.lattice.route.LatticeRoute">
+<em class="property">class </em><code class="sig-prename descclassname">drawNA.lattice.route.</code><code class="sig-name descname">LatticeRoute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nodes</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#drawNA.lattice.node.LatticeNode" title="drawNA.lattice.node.LatticeNode">drawNA.lattice.node.LatticeNode</a><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/route.html#LatticeRoute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.route.LatticeRoute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Strand which follows the path defined by a set of
+LatticeNodes which are joined by LatticeEdges</p>
+<dl class="py method">
+<dt id="drawNA.lattice.route.LatticeRoute.add_node">
+<code class="sig-name descname">add_node</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addition</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#drawNA.lattice.node.LatticeNode" title="drawNA.lattice.node.LatticeNode">drawNA.lattice.node.LatticeNode</a></span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">update</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/route.html#LatticeRoute.add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.route.LatticeRoute.add_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to add strand(s) to the system</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>- accepted as Strand objects</strong><strong> or </strong><strong>a List of Strands</strong> (<em>addition</em>) – </p></li>
+<li><p><strong>index</strong> (<em>default = None</em>) – </p></li>
+<li><p><strong>Strand inserted at location given</strong> (<em>otherwise</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.lattice.route.LatticeRoute.add_nodes">
+<code class="sig-name descname">add_nodes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">node_obj</span><span class="p">:</span> <span class="n">list</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">index</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/route.html#LatticeRoute.add_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.route.LatticeRoute.add_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add multiple strands to the system. Use a list of strands with
+an index indicating where they start, or a dictionary where
+the key is an integer and the value is a strand.</p>
+<p>strand_lists are added in reverse order
+to preserve original list order</p>
+<p>strand_dicts are added in normal order
+to preserve dictionary keys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_obj</strong> (<em>-</em>) – list or dict of strands</p></li>
+<li><p><strong>index</strong> (<em>-</em>) – index to start adding list</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+<dl class="py method">
+<dt id="drawNA.lattice.route.LatticeRoute.update_strands">
+<code class="sig-name descname">update_strands</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/route.html#LatticeRoute.update_strands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.route.LatticeRoute.update_strands" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate strands between 2D lattice nodes,
+then generate a single strand representing the route</p>
+</dd></dl>
+</dd></dl>
 
 
-<h3 id="drawna-lattice-utils"><cite>drawNA.lattice.utils</cite><a class="headerlink" href="#drawna-lattice-utils" title="Permalink to this headline">¶</a></h3>
+<span id="drawna-lattice-utils"></span><h3 id="module-drawNA.lattice.utils"><cite>drawNA.lattice.utils</cite><a class="headerlink" href="#module-drawNA.lattice.utils" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="drawNA.lattice.utils.find_closest">
+<code class="sig-prename descclassname">drawNA.lattice.utils.</code><code class="sig-name descname">find_closest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">myList</span></em>, <em class="sig-param"><span class="n">myNumber</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawNA/lattice/utils.html#find_closest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.utils.find_closest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Credit: <a class="reference external" href="https://stackoverflow.com/questions/12141150">https://stackoverflow.com/questions/12141150</a>
+Assumes myList is sorted. Returns closest value to myNumber.</p>
+<p>If two numbers are equally close, return the smallest number.</p>
+</dd></dl>
+<dl class="py function">
+<dt id="drawNA.lattice.utils.find_crossover_locations">
+<code class="sig-prename descclassname">drawNA.lattice.utils.</code><code class="sig-name descname">find_crossover_locations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">max_size</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">30</span></em>, <em class="sig-param"><span class="n">bp_per_turn</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">10.45</span></em>, <em class="sig-param"><span class="n">kind</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'half'</span></em>, <em class="sig-param"><span class="n">origin</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span> → dict<a class="reference internal" href="_modules/drawNA/lattice/utils.html#find_crossover_locations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#drawNA.lattice.utils.find_crossover_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function which returns an array containing the best locations
+for half or whole turns of the DNA strand where the strand will
+stay in plane and have the least strain/stress build-up.</p>
+<p>This is computed given the number of basepairs per turn
+&amp; locations are given in no. of base pairs</p>
+<p>Arguments:
+bp_per_turn - (default: 10.45)
+kind - either half turns or whole turns
+max_size - max no. of turns to base pairs to the list
+origin - what number crossovers start at, either 0 (python indexing) or 1</p>
+</dd></dl>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
