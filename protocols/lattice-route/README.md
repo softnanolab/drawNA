@@ -1,6 +1,4 @@
-# Shanil_Test
-
-## `DNASnake` Summary
+# `DNASnake` Summary
 
 Automated DNA origami scaffold generation for a 2D polygon.
 
@@ -10,13 +8,15 @@ Polygon limits:
 
 ## Usage
 
-```pip install .```
-```cd protocols/lattice-route/ ```
-```python DNA_Snake.py```
+```
+pip install .
+cd protocols/lattice-route/   
+python DNA_Snake.py
+```
 
 ## Description
 
-See **`DNASnake_steps`** to understand the algorithm implemented to generate a scaffold route.
+See **`DNASnake_steps.ipynb`** to understand the algorithm implemented to generate a scaffold route.
 
 Although, a quick summary:
 
@@ -27,11 +27,11 @@ Although, a quick summary:
   5. Export to file (currently either the oxDNA format (`.top` and `.conf`) or LAMMPS format (`.dump`))
 
 ### The algorithm
-![DNASnake method](img/Figure3_how_dnasnake_works.png)
+![DNASnake method](imgs/Figure3_how_dnasnake_works.png)
 *Extracted from my undergraduate research placement report - Shanil*
 
 ### Exemplar outputs
-![DNASnake method](img/Figure4_dnasnake_examples.png)
+![DNASnake examples](imgs/Figure4_dnasnake_examples.png)
 *Extracted from my undergraduate research placement report - Shanil*
 
 - Further `.pdf` with examples in *docs* folder above
