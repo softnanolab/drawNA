@@ -1,3 +1,9 @@
-import os
+import drawNA
 
-print(os)
+# create an oxDNA strand
+
+# create an oxDNA system
+
+# print the System class's dataframe
+
+# write the system to file
