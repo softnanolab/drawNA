@@ -1,14 +1,46 @@
-.. drawNA documentation master file, created by
-   sphinx-quickstart on Wed Oct 14 23:55:28 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+DrawNA's Documentation
+======================
+drawNA is a Python Library which can currently be used for generating a system comprised of ssDNA/dsDNA strands. Using a set of vertices, lines (edges) are generated which act as centrelines for single/double strands of DNA. It is modelled using the oxDNA model and can be exported in this format.
 
-Welcome to drawNA's documentation!
-**********************************
+The end goal of the package is to autonomously generate many possible DNA origami scaffold configurations and subsequently their complimentary staple strands for a given 2D shape.
+
+About
+=====
+Polygon
+^^^^^^^
+* Generate a polygon, given its verticies, where every edge is individually accessible
+* Write the polygon to .STL and .PLY file formats
+
+oxDNA
+^^^^^
+* Create an oxDNA system with tools to control the length, sequence, base-pairs/nucleotides per 2π turn and more.
+* Export to oxDNA file format or LAMMPS data format
+* Read oxDNA and LAMMPS data and dump formats
+
+Lattice
+^^^^^^^
+* Create a lattice within a polygon
+* Allocate a route for a strand of DNA to take to fill the polygon
+* Create an oxDNA system of the scaffold strand which follows the route
+
+
+Install
+=======
+To install the code using PyPi::
+
+    git clone https://github.com/softnanolab/drawNA
+    cd drawNA
+    pip install .
+
+FAQ
+===
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+Examples
+========
+
 
 `drawNA`
 ========
@@ -87,4 +119,3 @@ Welcome to drawNA's documentation!
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
