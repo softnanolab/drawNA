@@ -132,6 +132,7 @@ dmypy.json
 .vscode/*
 
 # Generate files
+oxdna.*.energy
 oxdna.*.conf
 oxdna.*.top
 lammps.*.conf
