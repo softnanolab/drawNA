@@ -153,6 +153,21 @@ class Strand:
     def copy(self):
         return deepcopy(Strand(self._nucleotides))
 
+    def transform(self, matrix: np.ndarray):
+        for nucleotide in self._nucleotides:
+            nucleotide.transform(matrix)
+        return
+
+    def translate(self, translation_vector: np.ndarray):
+        for nucleotide in self._nucleotides:
+            nucleotide.translate(translation_vector)
+        return
+
+    def rotate(self, rotator: np.ndarray):
+        for nucleotide in self._nucleotides:
+            nucleotide.rotate(rotator)
+        return
+
 
 def generate_helix(
     n: int = None,
