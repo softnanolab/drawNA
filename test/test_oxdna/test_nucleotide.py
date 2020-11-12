@@ -51,6 +51,35 @@ def test_Nucleotide_across():
     new_2.index = 1
     assert nucleotide.across == new_2.index
     assert new_2.across == nucleotide.index   
+
+def test_Nucleotide_transform():
+    nucleotide = Nucleotide(
+        "A",
+        np.array([1.0, 0.0, 0.0]),
+        np.array([1.0, 0.0, 0.0]),
+        np.array([0.0, 0.0, 1.0]),
+    )
+
+    nucleotide.translate(np.array([10., 0., 0.]))
+    assert all(nucleotide.pos_com == [11., 0., 0.])
+
+    nucleotide.rotate([0., 0., 0., 1.])
+    nucleotide.rotate([0., 0., 0.])
+    nucleotide.rotate(
+        np.array([
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 0.],
+        ])
+    )
+
+    nucleotide.transform(np.array([
+        [1., 0., 0., 0.],
+        [0., 1., 0., 0.],
+        [0., 0., 1., 0.],
+    ]))
+
+    return
     
 if __name__ == "__main__":
     test_Nucleotide()

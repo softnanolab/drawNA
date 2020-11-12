@@ -2,7 +2,6 @@ import re
 from typing import List
 
 import numpy as np
-import meshio
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 
@@ -89,7 +88,7 @@ class BoundaryPolygon:
         triangulation = tri.Triangulation(self.vertices[:, 0], self.vertices[:, 1])
         triangles = triangulation.get_masked_triangles()
         cells = [("triangle", triangles)]
-        meshio.write_points_cells(fout, self.vertices, cells)
+        #meshio.write_points_cells(fout, self.vertices, cells)
 
     def write_PLY(self, fout: str, comments: List[str] = []):
         """

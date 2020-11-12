@@ -125,6 +125,25 @@ def test_System():
     print(system)
     print(system.dataframe)
     # system.write_oxDNA()
+
+    system.translate(np.array([10., 0., 0.]))
+    
+
+    system.rotate([0., 0., 0., 1.])
+    system.rotate([0., 0., 0.])
+    system.rotate(
+        np.array([
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 0.],
+        ])
+    )
+
+    system.transform(np.array([
+        [1., 0., 0., 0.],
+        [0., 1., 0., 0.],
+        [0., 0., 1., 0.],
+    ]))
     return
 
 
