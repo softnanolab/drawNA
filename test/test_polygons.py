@@ -34,7 +34,7 @@ def test_BoundaryPolygon():
     assert isinstance(square.edges[0], Edge)
 
     # square.plot2D(show=False)
-    square.write_STL(f"{ROOT}/square.stl")
+    # square.write_STL(f"{ROOT}/square.stl")
     square.write_PLY(f"{ROOT}/square.ply")
 
 

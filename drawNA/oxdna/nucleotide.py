@@ -3,8 +3,9 @@ Management and Storage of oxDNA nucleotides
 """
 import numpy as np
 import pandas as pd
+from scipy.spatial.transform import Rotation
 
-from typing import List
+from typing import List, Union
 import warnings
 
 from .utils import get_rotation_matrix
@@ -304,4 +305,62 @@ class Nucleotide:
         self.across = nucleotide
         return nucleotide
 
+    def transform(self, matrix: np.ndarray):
 
+        vecs = [self.pos_com, self._a1, self._a3, self._v, self._L]
+
+        if matrix.shape == (3, 3):
+            for vec in vecs:
+                vec = np.dot(matrix, vec.T)
+            
+        
+        elif matrix.shape == (3, 4):
+            for vec in vecs:
+                vec = np.dot(matrix, np.hstack([vec, np.ones((3, 1))]).T)
+            
+        else:
+            raise TypeError(
+                f'Transformation Matrix must have shape (3, 3) '
+                f'or (3, 4) but has shape {matrix.shape}'
+            )
+
+        return
+
+    def translate(self, translation_vector: np.ndarray):
+
+        if isinstance(translation_vector, list):
+            translation_vector = np.array(translation_vector)
+
+        if not (translation_vector.shape == (1, 3) or 
+                translation_vector.shape == (3, )):
+                raise TypeError(
+                    f'Translation vector has the wrong shape '
+                    f'({translation_vector.shape})'
+                )
+        self.pos_com += translation_vector
+        return
+
+    def rotate(self, rotator: np.ndarray):
+
+        if isinstance(rotator, list):
+            rotator = np.array(rotator)
+
+        # if 1d array with length 3 -> euler angles
+        if rotator.shape == (1, 3) or rotator.shape == (3, ):
+            matrix = Rotation.from_euler('xyz', rotator).as_matrix()
+
+        # if 1d array with length 4 -> quaternion
+        elif rotator.shape == (1, 4) or rotator.shape == (4, ):
+            matrix = Rotation(rotator).as_matrix()
+
+        # if 2d array use transform
+        elif rotator.shape == (3, 3):
+            matrix = rotator
+
+        else:
+            raise TypeError(
+                f'Rotator was passed that is not valid:\n{rotator}'
+            )
+
+        self.transform(matrix)
+        return
