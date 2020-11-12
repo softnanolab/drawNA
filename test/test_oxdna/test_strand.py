@@ -106,6 +106,67 @@ def test_generate_helix_seq():
     assert len(strand.nucleotides) == 10
     assert strand.sequence[0:11] == long_seq[0:10]
 
+def test_strand_transform():
+    strand = Strand(
+        [
+            Nucleotide(
+                "A",
+                np.array([1.0, 0.0, 0.0]),
+                np.array([1.0, 0.0, 0.0]),
+                np.array([0, 0.0, 1.0]),
+            ),
+            Nucleotide(
+                "A",
+                np.array([2.0, 0.0, 0.0]),
+                np.array([1.0, 0.0, 0.0]),
+                np.array([0, 0.0, 1.0]),
+            ),
+            Nucleotide(
+                "A",
+                np.array([3.0, 0.0, 0.0]),
+                np.array([1.0, 0.0, 0.0]),
+                np.array([0, 0.0, 1.0]),
+            ),
+            Nucleotide(
+                "A",
+                np.array([4.0, 0.0, 0.0]),
+                np.array([1.0, 0.0, 0.0]),
+                np.array([0, 0.0, 1.0]),
+            ),
+            Nucleotide(
+                "A",
+                np.array([5.0, 0.0, 0.0]),
+                np.array([1.0, 0.0, 0.0]),
+                np.array([0, 0.0, 1.0]),
+            ),
+            Nucleotide(
+                "A",
+                np.array([6.0, 0.0, 0.0]),
+                np.array([1.0, 0.0, 0.0]),
+                np.array([0, 0.0, 1.0]),
+            ),
+        ]
+    )
+    strand.translate(np.array([10., 0., 0.]))
+    
+
+    strand.rotate([0., 0., 0., 1.])
+    strand.rotate([0., 0., 0.])
+    strand.rotate(
+        np.array([
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 0.],
+        ])
+    )
+
+    strand.transform(np.array([
+        [1., 0., 0., 0.],
+        [0., 1., 0., 0.],
+        [0., 0., 1., 0.],
+    ]))
+    return
+
 
 if __name__ == "__main__":
 

@@ -316,7 +316,7 @@ class Nucleotide:
         
         elif matrix.shape == (3, 4):
             for vec in vecs:
-                vec = np.dot(matrix, np.hstack([vec, np.ones((3, 1))]).T)
+                vec = np.dot(matrix, np.hstack([vec, [1]]))
             
         else:
             raise TypeError(
