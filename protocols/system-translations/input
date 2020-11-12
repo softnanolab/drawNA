@@ -1,0 +1,38 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+backend = CPU
+backend_precision = double
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 100000
+newtonian_steps = 103
+diff_coeff = 2.50
+thermostat = john
+
+T = 0.110
+dt = 0.005
+verlet_skin = 0.05
+
+##############################
+####     INTERACTIONS     ####
+##############################
+rcut = 2.0
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = prova.top
+conf_file = prova.conf
+trajectory_file = oxdna.traj.conf
+refresh_vel = 1
+no_stdout_energy = 0
+restart_step_counter = 1
+energy_file = oxdna.main.energy
+print_conf_interval = 10000
+print_conf_ppc = 51
+print_energy_every = 100000
+time_scale = linear
+external_forces = 0

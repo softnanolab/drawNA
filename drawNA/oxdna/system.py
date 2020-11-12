@@ -10,6 +10,8 @@ import pandas as pd
 import pathlib
 import os
 
+from copy import deepcopy
+
 from drawNA.oxdna import Strand, Nucleotide
 
 CONFIGURATION_COLUMNS = ["position", "a1", "a3", "v", "L"]
@@ -283,3 +285,6 @@ class System:
             for nucleotide in strand._nucleotides:
                 nucleotide.rotate(rotator)
         return
+
+    def copy(self):
+        return deepcopy(self)

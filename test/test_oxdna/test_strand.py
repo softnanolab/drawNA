@@ -61,6 +61,7 @@ def test_Strand():
 
     print("Basic Strand: \n", strand)
     # print(strand.dataframe)
+    strand.copy()
     return
 
 

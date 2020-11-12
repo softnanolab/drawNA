@@ -151,7 +151,7 @@ class Strand:
     # We create a new object, so the strand is not accessible
     # from anywhere other than the system
     def copy(self):
-        return deepcopy(Strand(self._nucleotides))
+        return deepcopy(self)
 
     def transform(self, matrix: np.ndarray):
         for nucleotide in self._nucleotides:

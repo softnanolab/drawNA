@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation
 
+from copy import deepcopy
+
 from typing import List, Union
 import warnings
 
@@ -364,3 +366,6 @@ class Nucleotide:
 
         self.transform(matrix)
         return
+
+    def copy(self):
+        return deepcopy(self)
