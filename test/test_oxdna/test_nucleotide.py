@@ -22,6 +22,7 @@ def test_Nucleotide():
     print(nucleotide.series)
     nucleotide.make_5p('A')
     nucleotide.make_across()
+    nucleotide.copy()
     return
 
 def test_Nucleotide_across():
