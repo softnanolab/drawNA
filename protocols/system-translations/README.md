@@ -6,7 +6,15 @@ Demonstration of how to create multiple replicas of oxDNA systems that are trans
 
 ## Usage
 
-```python main.py [-n NUMBER] [-o OXDNA] [-i INPUT_FILE]```
+```
+python main.py [-n NUMBER] [-o OXDNA] [-i INPUT_FILE]
+
+    NUMBER: Number of replicas
+    OXDNA: Path to oxDNA binary
+    INPUT_FILE: Path to oxDNA input file
+```
+
+
 
 ## Description
 

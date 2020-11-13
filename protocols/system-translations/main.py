@@ -97,7 +97,7 @@ def main(number: int, oxDNA: str, input_file: str):
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument("-n", "--number", type=int, required=False, default=5)
-    parser.add_argument("-o", "--oxDNA", type=str, required=False, default='oxDNA')
-    parser.add_argument("-i", "--input-file", type=str, required=False, default='input')
+    parser.add_argument("-n", "--number", type=int, required=False, default=5, help='Number of replicas')
+    parser.add_argument("-o", "--oxDNA", type=str, required=False, default='oxDNA', help='Path to oxDNA binary')
+    parser.add_argument("-i", "--input-file", type=str, required=False, default='input', help='Path to oxDNA input file')
     main(**vars(parser.parse_args()))
