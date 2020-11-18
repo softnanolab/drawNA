@@ -151,7 +151,22 @@ class Strand:
     # We create a new object, so the strand is not accessible
     # from anywhere other than the system
     def copy(self):
-        return deepcopy(Strand(self._nucleotides))
+        return deepcopy(self)
+
+    def transform(self, matrix: np.ndarray):
+        for nucleotide in self._nucleotides:
+            nucleotide.transform(matrix)
+        return
+
+    def translate(self, translation_vector: np.ndarray):
+        for nucleotide in self._nucleotides:
+            nucleotide.translate(translation_vector)
+        return
+
+    def rotate(self, rotator: np.ndarray):
+        for nucleotide in self._nucleotides:
+            nucleotide.rotate(rotator)
+        return
 
 
 def generate_helix(

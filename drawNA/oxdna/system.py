@@ -10,6 +10,8 @@ import pandas as pd
 import pathlib
 import os
 
+from copy import deepcopy
+
 from drawNA.oxdna import Strand, Nucleotide
 
 CONFIGURATION_COLUMNS = ["position", "a1", "a3", "v", "L"]
@@ -265,3 +267,24 @@ class System:
             raise TypeError(
                 "add_strands() requires ONE of a list or dictionary of strands"
             )
+
+    def transform(self, matrix: np.ndarray):
+        for strand in self._strands:
+            for nucleotide in strand._nucleotides:
+                nucleotide.transform(matrix)
+        return
+
+    def translate(self, translation_vector: np.ndarray):
+        for strand in self._strands:
+            for nucleotide in strand._nucleotides:
+                nucleotide.translate(translation_vector)
+        return
+
+    def rotate(self, rotator: np.ndarray):
+        for strand in self._strands:
+            for nucleotide in strand._nucleotides:
+                nucleotide.rotate(rotator)
+        return
+
+    def copy(self):
+        return deepcopy(self)
