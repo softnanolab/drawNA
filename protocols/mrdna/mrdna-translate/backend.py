@@ -85,7 +85,13 @@ class Manager:
         logger.info(f'<<< DONE!')
         return f'oxdna.{name}.conf.pdb'
 
-    def oxDNA_simulate(self, input_file):
+    def oxDNA_simulate(self, **kwargs):
+        args = [
+            self.oxDNA,
+            self.input_file,
+        ]
+        args += [f'{key}={value}' for key, value in kwargs.items()]
+        subprocess.check_output(args)
         return
 
     def mrdna_simulate(self, pdb_file):

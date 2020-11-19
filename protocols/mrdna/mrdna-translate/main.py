@@ -13,93 +13,58 @@ logger = Logger(__name__)
 
 from backend import Manager
 
-class Job(Runner):
-    def __init__(self, manager: Manager):
+class Job(Runner, Manager):
+    def __init__(self, **kwargs):
         logger.info('Creating Runner')
-        self.manager = manager
-        return
+        Runner.__init__(self)
+        Manager.__init__(self, **kwargs)
 
     @Runner.task(0)
     def setup(self):
+        """Setup single instance of a system"""
         logger.info('Running setup...')
-        system = self.manager.generate_system()
-        self.manager.cache['pdb'] = self.manager.export_PDB(
-            system, 
-            f'{self.manager.name}.0'
-        )
-        self.manager.child_systems[0] = system
-        # run mrDNA simulation [0]
-        self.manager.simulate(
-            self.manager.cache['pdb']
-        )
+
+        # create system
+        self.system = generate_system()
+
+        # create spherical force
+        self.initialise_forces()
         return
 
     @Runner.task(1)
-    def loop(self):
-        logger.info('Running loop...')
-        try:
-            for i, system in enumerate(self.manager.child_systems[1:]):
-                # import resulting PDB file as 
-                # oxDNA system [1]
-                system = self.manager.import_PDB(self.manager.cache['pdb'])
+    def equilibrate(self):
+        """Equilibrate single oxDNA system"""
+        logger.info('Running equilibration...')
+        equilibrated = False
 
-                # recentre [1]
-                system = self.manager.recenter_system(system)
+        # run one simulation for a large number of steps
+        self.oxdna_simulation()
+        while not equilibrated:
 
-                # export PDB file [1]
-                self.manager.cache['pdb'] = self.manager.export_PDB(
-                    system,
-                    f'{self.manager.name}.{i}'
-                )
-                logger.debug(f"cache['pdb']: {self.manager.cache['pdb']}")
-                assert Path(self.manager.cache['pdb']).exists()
-                # run simulation [1]
-                self.manager.simulate(
-                    str(Path(self.manager.cache['pdb']).resolve())
-                )
-        except:
-            logger.warning('Loop Failed')
+            # run simulation for a shorter time
+            self.oxdna_simulate(self.input_file)
+
+            # check energy
+            if self.check_energy():
+                equilibrated = True
+
         return
 
     @Runner.task(2)
+    def replicate(self):
+        """Run a simulation that outputs a different """
+        logger.info('Running replication...')
+        return
+
+    @Runner.task(3)
+    def assemble(self):
+        """Iterate through all simulations and create a large, compiled one"""
+        logger.info('Running assemble')
+        return
+
+    @Runner.task(4)
     def finalise(self):
-        logger.info('Running finalise...')
-        # for each child system
-        for i, system in enumerate(self.manager.child_systems):
-            # translate a copy of the system
-            temp_system = self.manager.recenter_system(system.copy())
-            # export child system
-            temp_system.write_oxDNA(f'{self.manager.name}.{i}', root=self.manager.root)
-            temp_system.translate(self.manager.spacing)
-
-            # take the strands and
-            # add them to the mother system
-            for strand in temp_system.strands:
-                self.manager.mother_system.add_strand(
-                    strand.copy()
-                )
-
-        # export mother system
-        self.manager.mother_system.write_oxDNA(self.manager.name, root=self.manager.root)
-
-        # delete other files
-        for ext in [
-            "*.txt*", 
-            "*.bd*", 
-            "*.pdb*", 
-            "*.psf*", 
-            "*.namd*",
-            "oxdna*",
-            "*.exb",
-        ]:
-            logger.info(f'Deleting {ext}')
-            for p in Path(".").glob(ext):
-                p.unlink()
-
-        for folder in ['charmm36.nbfix', 'output', 'potentials']:
-            logger.info(f'Deleting {folder}')
-            subprocess.check_output(['rm', '-rf', folder])
-
+        """Create mrdna simulation and run to completion"""
         return
 
 def main(**kwargs):
@@ -113,8 +78,7 @@ def main(**kwargs):
         )
     
     # setup manager and job
-    manager = Manager(**kwargs)
-    job = Job(manager)
+    job = Job(**kwargs)
 
     # Runs all methods decorated with @Runner.task() in order
     job.execute()
@@ -126,4 +90,6 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--number", type=int, required=False, default=5, help='Number of replicas')
     parser.add_argument("-s", "--spacing", type=int, required=False, default=5, help='Spacing between replicas')
     parser.add_argument("--tacoxDNA", default=os.environ.get('TACOXDNA', None), help='Path to tacoxDNA root directory')
+    parser.add_argument("--oxDNA", default='oxDNA', help='Path to tacoxDNA root directory')
+    parser.add_argument("-i", "--input-file", default='input', help='Path to tacoxDNA root directory')
     main(**vars(parser.parse_args()))
