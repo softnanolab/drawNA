@@ -2,15 +2,16 @@ import subprocess
 from softnanotools.logger import Logger
 logger = Logger(__name__)
 
-logger.info('Checking for nvidia-smi...')
+logger.info('Checking for nvcc...')
 try:
-    subprocess.check_output(['nvidia-smi'])
-    logger.info('Success!')
+    subprocess.check_output(['nvcc'], stderr=subprocess.DEVNULL)
 except FileNotFoundError:
     raise FileNotFoundError(
-        'nvidia-smi did not work so CUDA probably '
+        'nvcc did not work so CUDA probably '
         'is not installed, so this example will not work!'
     )
+except subprocess.CalledProcessError:
+    logger.info('Success!')
     
 logger.info('Trying to import mrdna...')
 try:
