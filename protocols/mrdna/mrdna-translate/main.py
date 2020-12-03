@@ -13,117 +13,78 @@ logger = Logger(__name__)
 
 from backend import Manager
 
-class Job(Runner):
-    def __init__(self, manager: Manager):
-        logger.info('Creating Runner')
-        self.manager = manager
-        return
-
+class Job(Manager, Runner):
+    def __init__(self, **kwargs):
+        logger.info('Creating Runner...')
+        Manager.__init__(self, **kwargs)
+        logger.info('Success!')
+    
     @Runner.task(0)
-    def setup(self):
-        logger.info('Running setup...')
-        system = self.manager.generate_system()
-        self.manager.cache['pdb'] = self.manager.export_PDB(
-            system, 
-            f'{self.manager.name}.0'
-        )
-        self.manager.child_systems[0] = system
-        # run mrDNA simulation [0]
-        self.manager.simulate(
-            self.manager.cache['pdb']
-        )
+    def initialise(self):
+        logger.info('Running Initialisation...')
+        self.generate_system()
+        self.generate_forces()
+        self.generate_input_file('equilibration')
+        logger.info('Success!')
         return
 
     @Runner.task(1)
-    def loop(self):
-        logger.info('Running loop...')
-        try:
-            for i, system in enumerate(self.manager.child_systems[1:]):
-                # import resulting PDB file as 
-                # oxDNA system [1]
-                system = self.manager.import_PDB(self.manager.cache['pdb'])
-
-                # recentre [1]
-                system = self.manager.recenter_system(system)
-
-                # export PDB file [1]
-                self.manager.cache['pdb'] = self.manager.export_PDB(
-                    system,
-                    f'{self.manager.name}.{i}'
-                )
-                logger.debug(f"cache['pdb']: {self.manager.cache['pdb']}")
-                assert Path(self.manager.cache['pdb']).exists()
-                # run simulation [1]
-                self.manager.simulate(
-                    str(Path(self.manager.cache['pdb']).resolve())
-                )
-        except:
-            logger.warning('Loop Failed')
+    def equilibrate(self):
+        logger.info('Running Equilibration...')
+        self.run_equilibration()
+        logger.info('Success!')
         return
 
     @Runner.task(2)
-    def finalise(self):
-        logger.info('Running finalise...')
-        # for each child system
-        for i, system in enumerate(self.manager.child_systems):
-            # translate a copy of the system
-            temp_system = self.manager.recenter_system(system.copy())
-            # export child system
-            temp_system.write_oxDNA(f'{self.manager.name}.{i}', root=self.manager.root)
-            temp_system.translate(self.manager.spacing)
+    def replicate(self):
+        logger.info('Running Replication...')
+        self.generate_input_file('replication')
+        # run simulation ensuring that
+        # that the input file generated has
+        # the correct settings to allow
+        # for the correct number of replicas
+        logger.info('Success!')
+        return
 
-            # take the strands and
-            # add them to the mother system
-            for strand in temp_system.strands:
-                self.manager.mother_system.add_strand(
-                    strand.copy()
-                )
+    @Runner.task(3)
+    def compile(self):
+        logger.info('Running Compilation...')
+        # read trajectory and separate into
+        # different files for each replica
 
-        # export mother system
-        self.manager.mother_system.write_oxDNA(self.manager.name, root=self.manager.root)
+        # create a new empty system
+        # each replica in a new lattice point
+        # in the system
 
-        # delete other files
-        for ext in [
-            "*.txt*", 
-            "*.bd*", 
-            "*.pdb*", 
-            "*.psf*", 
-            "*.namd*",
-            "oxdna*",
-            "*.exb",
-        ]:
-            logger.info(f'Deleting {ext}')
-            for p in Path(".").glob(ext):
-                p.unlink()
+        # write the system to oxDNA and convert to PDB
+        logger.info('Success!')
+        return
 
-        for folder in ['charmm36.nbfix', 'output', 'potentials']:
-            logger.info(f'Deleting {folder}')
-            subprocess.check_output(['rm', '-rf', folder])
+    @Runner.task(4)
+    def run(self):
+        logger.info('Running Master Simulation...')
+        # run the mrdna simulation using the previously
+        # created PDB
 
+        # tidy up any files
+        logger.info('Success!')
         return
 
 def main(**kwargs):
-    
-    # check tacoxDNA is installed properly
-    if kwargs['tacoxDNA'] == None:
-        logger.error(
-            'tacoxDNA has not been set! It can be set by doing either:\n'
-            '\t1. export TACOXDNA=/path/to/tacoxDNA\n'
-            '\t2. python main.py ... --tacoxDNA /path/to/tacoxDNA'
-        )
-    
-    # setup manager and job
-    manager = Manager(**kwargs)
-    job = Job(manager)
+    # setup Job
+    job = Job(**kwargs)
 
-    # Runs all methods decorated with @Runner.task() in order
+    # execute Job
     job.execute()
     return
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument("-n", "--number", type=int, required=False, default=5, help='Number of replicas')
-    parser.add_argument("-s", "--spacing", type=int, required=False, default=5, help='Spacing between replicas')
+    parser.add_argument("-b", "--box", type=float, default=50., help='Length of cubic box')
+    parser.add_argument("-n", "--number", type=int, default=5, help='Number of replicas')
+    parser.add_argument("-s", "--spacing", type=int, default=5, help='Spacing between replicas')
     parser.add_argument("--tacoxDNA", default=os.environ.get('TACOXDNA', None), help='Path to tacoxDNA root directory')
+    parser.add_argument("--name", default='main', help='Naming-pattern for all of the resulting files')
+    parser.add_argument("--root", default='data', help='Results Directory (will be created if it does not exist)')
     main(**vars(parser.parse_args()))

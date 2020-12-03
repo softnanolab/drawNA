@@ -23,6 +23,17 @@ except ImportError:
         'see README.md for installation guide'
     )
 
+logger.info('Trying to run oxDNA...')
+try:
+    subprocess.check_output(['oxDNA'], stderr=subprocess.DEVNULL)
+except FileNotFoundError:
+    raise FileNotFoundError(
+        'oxDNA was not found at oxDNA - please add '
+        'the oxDNA executable to your PATH'
+    )
+except subprocess.CalledProcessError:
+    logger.info('Success!')
+
 logger.info('Trying to import softnanotools...')
 try:
     import softnanotools
