@@ -38,11 +38,13 @@ class Job(Manager, Runner):
     @Runner.task(2)
     def replicate(self):
         logger.info('Running Replication...')
-        self.generate_input_file('replication')
         # run simulation ensuring that
         # that the input file generated has
         # the correct settings to allow
         # for the correct number of replicas
+        self.generate_input_file('replication')
+        self.run_replication()
+        self.split_trajectory()
         logger.info('Success!')
         return
 
@@ -56,6 +58,8 @@ class Job(Manager, Runner):
         # each replica in a new lattice point
         # in the system
 
+        self.create_mother_system()
+
         # write the system to oxDNA and convert to PDB
         logger.info('Success!')
         return
@@ -65,7 +69,7 @@ class Job(Manager, Runner):
         logger.info('Running Master Simulation...')
         # run the mrdna simulation using the previously
         # created PDB
-
+        self.mrdna_simulate()
         # tidy up any files
         logger.info('Success!')
         return
@@ -81,7 +85,7 @@ def main(**kwargs):
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
-    parser.add_argument("-b", "--box", type=float, default=50., help='Length of cubic box')
+    parser.add_argument("-b", "--box", type=float, default=40., help='Length of cubic box')
     parser.add_argument("-n", "--number", type=int, default=5, help='Number of replicas')
     parser.add_argument("-s", "--spacing", type=int, default=5, help='Spacing between replicas')
     parser.add_argument("--tacoxDNA", default=os.environ.get('TACOXDNA', None), help='Path to tacoxDNA root directory')

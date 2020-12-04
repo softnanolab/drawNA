@@ -1,15 +1,25 @@
 import json
 import re
+import os
+import shutil
+import subprocess
 
 from pathlib import Path
 
+import pandas as pd
+import numpy as np
+
 from imports import *
+import generate
 
 from softnanotools.logger import Logger
 logger = Logger('Manager')
 
-from drawNA.oxdna.strand import generate_helix
 from drawNA.oxdna import Nucleotide, Strand, System
+from drawNA.readers import OXDNAReader
+
+
+oxDNA = '/home/kaiye/oxdna/third_version/oxDNA/build/bin/oxDNA'
 
 def oxDNA_string(dictionary) -> str:
     string = json.dumps(dictionary, indent=2)
@@ -27,7 +37,8 @@ class Manager:
         spacing: float,
         tacoxDNA: str,
         root: str = 'data',
-        name: str = 'main'
+        name: str = 'main',
+        energy: str = 'oxdna.energy'
     ):
         self.box = box
         self.number = number
@@ -40,7 +51,7 @@ class Manager:
                 '\t2. python main.py ... --tacoxDNA /path/to/tacoxDNA'
             )
             
-        self.tacoxDNA = tacoxDNA
+        self._tacoxDNA = tacoxDNA
 
         # initialise filenames
         self.name = name
@@ -52,17 +63,19 @@ class Manager:
         self.topology = f'{self.root}/oxdna.{self.name}.top'
         self.configuration = f'{self.root}/oxdna.{self.name}.conf'
         self.configuration_template = f'{self.root}/oxdna.{self.name}.{{}}.conf'
+        self.energy = energy
 
         logger.debug('Initialised the following filenames:')
         logger.debug(f'\tName         : {self.name}')
         logger.debug(f'\tRoot         : {self.root}')
+        logger.debug(f'\tEnergy       : {self.energy}')
         logger.debug(f'\tTopology     : {self.topology}')
         logger.debug(f'\tConfiguration: {self.configuration}')
         logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
 
-    def generate_system(self) -> System:
-        """Creates an oxDNA system"""
-        system = System([self.box] * 3)
+    def generate_system(self):
+        """Generate a simple oxDNA system"""
+        system = generate.generate_system([self.box] * 3) 
         self.system = system
         return system
 
@@ -74,7 +87,7 @@ class Manager:
             type='sphere',
             particle=-1,
             center="0., 0., 0.",
-            r0=self.box,
+            r0=self.box/2,
             stiff=5.0,
         )
         string = oxDNA_string(forces)
@@ -88,10 +101,13 @@ class Manager:
         return forces_filename
 
     def generate_input_file(self, stage):
+
+        # create input file dictionary
         input_file = dict(
-            backend='GPU',
-            backend_precision='double',
-            steps=10,
+            sim_type='MD',
+            backend='CUDA',
+            backend_precision='mixed',
+            steps=100000,
             newtonian_steps=103,
             diff_coeff=2.50,
             thermostat='john',
@@ -99,24 +115,152 @@ class Manager:
             dt=0.005,
             verlet_skin=0.05,
             topology=self.topology,
-            configuration=self.configuration,
+            conf_file=self.configuration,
             refresh_vel=1,
             restart_step_counter=1,
-            energy_file='oxdna.energy',
+            energy_file=self.energy,
             time_scale='linear',
             external_forces=True,
             external_forces_file=self.forces,
-            print_conf_interval=10,
-            print_energy_every=10,
+            print_conf_interval=10000,
+            print_energy_every=1000,
+            trajectory_file='oxdna.main.traj',
+            lastconf_file=self.configuration
         )
+
+        if stage == 'equilibration':
+            pass
+
+        elif stage == 'replication':
+            input_file['print_conf_interval'] = 100
+            input_file['steps'] = 100 * self.number
+
+        # format string
         string = oxDNA_string(input_file)
         string = re.sub(r"[\{|\}]", "", string).replace("  ", "")
-        with open(f'{self.root}/oxdna.input', 'w') as f:
+
+        # write to file
+        with open(f'{self.root}/oxdna.{stage}.input', 'w') as f:
             f.write(string[1:])
+
         return
 
+    def check_energy(self) -> bool:
+        data = pd.read_csv(
+            self.energy, 
+            delim_whitespace=True, 
+            header=None
+        )
+        gradient = np.gradient(data[3][-50:]).mean()
+        logger.debug(f'Checking {self.energy}, gradient={gradient}')
+        if abs(gradient) < 1e-3:
+            return True
+        else:
+            return False
+
     def run_equilibration(self):
+        self.system.write_oxDNA(self.name)
+        shutil.move(
+            f'./oxdna.{self.name}.conf',
+            self.configuration
+        )
+        shutil.move(
+            f'./oxdna.{self.name}.top',
+            self.topology
+        )
+        
+        logger.info('Calling oxDNA...')
+        try:
+            subprocess.check_output([
+                oxDNA, 
+                f'{self.root}/oxdna.equilibration.input'
+            ])
+        
+
+            while not self.check_energy():
+                logger.info('Checking energy...')
+                subprocess.check_output([
+                    oxDNA, 
+                    f'{self.root}/oxdna.equilibration.input'
+                ])
+        except KeyboardInterrupt:
+            logger.debug('Caught KeyboardInterrupt successfully')
+
         return
 
     def run_replication(self):
+        subprocess.check_output([
+            oxDNA, 
+            f'{self.root}/oxdna.replication.input'
+        ])
+        return
+
+    def split_trajectory(self):
+
+        n_lines = len(self.system.nucleotides) + 3
+        # get number of lines in trajectory
+        with open('oxdna.main.traj', 'r') as f:
+            data = f.readlines().copy()
+
+            for i in range(self.number):
+                fname = self.configuration_template.format(i)
+                logger.debug(f'Writing replica to {fname}')
+                string = ''.join(data[n_lines*i : n_lines*(i+1)])
+                with open(fname, 'w') as fout:
+                    fout.write(string)
+        return
+
+    def tacoxDNA(self, function: str) -> str:
+        return str(Path(self._tacoxDNA) / 'src' / f'{function}.py')
+
+    def create_mother_system(self):
+        m = np.ceil(np.cbrt(self.number)) 
+        box = m * self.box
+        mother = System([box, box, box])
+        for i in range(self.number):
+            clone = OXDNAReader([
+                self.configuration_template.format(i), 
+                self.topology
+            ]).system
+
+            translation = np.array([
+                box/2 * (i % m),
+                box/2 * ((i // m) % m),
+                box/2 * (i // (m * m)),
+            ])
+
+            clone.translate(translation)
+            mother.add_strands(clone.strands)
+        mother.write_oxDNA('mother')
+
+        logger.info(f'>>> Exporting PDB to mother')
+        subprocess.check_output([
+            'python',
+            self.tacoxDNA("oxDNA_PDB"),
+            f'oxdna.mother.top',
+            f'oxdna.mother.conf',
+            '35',
+        ])
+        logger.info(f'<<< DONE!')
+        return
+
+    def mrdna_simulate(self):
+        """Executes an mrDNA simulation"""
+        # include imports here to avoid caching errors
+        from mrdna.simulate import multiresolution_simulation as simulate
+        from mrdna.readers import read_atomic_pdb as read_model    
+
+        # read PDB
+        model = read_model('oxdna.mother.conf.pdb')
+
+        # simulate
+        simulate(
+            model, 
+            'out', 
+            coarse_steps=100, 
+            fine_steps=100,
+            coarse_output_period=1,
+            fine_output_period=1,
+            directory='.'
+        )
         return
