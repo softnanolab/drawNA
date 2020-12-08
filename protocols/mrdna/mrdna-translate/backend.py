@@ -18,9 +18,6 @@ logger = Logger('Manager')
 from drawNA.oxdna import Nucleotide, Strand, System
 from drawNA.readers import OXDNAReader
 
-
-oxDNA = '/home/kaiye/oxdna/third_version/oxDNA/build/bin/oxDNA'
-
 def oxDNA_string(dictionary) -> str:
     string = json.dumps(dictionary, indent=2)
     string = string.replace('"', '' 
@@ -38,7 +35,8 @@ class Manager:
         tacoxDNA: str,
         root: str = 'data',
         name: str = 'main',
-        energy: str = 'oxdna.energy'
+        energy: str = 'oxdna.energy',
+        oxDNA: str = 'oxDNA'
     ):
         self.box = box
         self.number = number
@@ -52,6 +50,7 @@ class Manager:
             )
             
         self._tacoxDNA = tacoxDNA
+        self._oxDNA = oxDNA
 
         # initialise filenames
         self.name = name
@@ -172,7 +171,7 @@ class Manager:
         logger.info('Calling oxDNA...')
         try:
             subprocess.check_output([
-                oxDNA, 
+                self._oxDNA, 
                 f'{self.root}/oxdna.equilibration.input'
             ])
         
@@ -190,7 +189,7 @@ class Manager:
 
     def run_replication(self):
         subprocess.check_output([
-            oxDNA, 
+            self._oxDNA, 
             f'{self.root}/oxdna.replication.input'
         ])
         return
@@ -263,4 +262,5 @@ class Manager:
             fine_output_period=1,
             directory='.'
         )
+        shutil.move('out-3.pdb', f'{self.root}/mother.pdb')
         return
