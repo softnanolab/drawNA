@@ -41,6 +41,7 @@ class Manager:
         self.box = box
         self.number = number
         self.spacing = spacing
+        
         # check tacoxDNA is installed properly
         if tacoxDNA == None:
             logger.error(
@@ -100,7 +101,7 @@ class Manager:
         return forces_filename
 
     def generate_input_file(self, stage):
-
+        """Outputs oxDNA input files"""
         # create input file dictionary
         input_file = dict(
             sim_type='MD',
@@ -121,7 +122,7 @@ class Manager:
             time_scale='linear',
             external_forces=True,
             external_forces_file=self.forces,
-            print_conf_interval=10000,
+            print_conf_interval=100000,
             print_energy_every=1000,
             trajectory_file='oxdna.main.traj',
             lastconf_file=self.configuration
@@ -131,8 +132,8 @@ class Manager:
             pass
 
         elif stage == 'replication':
-            input_file['print_conf_interval'] = 100
-            input_file['steps'] = 100 * self.number
+            input_file['print_conf_interval'] = 10000
+            input_file['steps'] = 10000 * self.number
 
         # format string
         string = oxDNA_string(input_file)
@@ -145,6 +146,8 @@ class Manager:
         return
 
     def check_energy(self) -> bool:
+        """Checks the energy of the system to see
+        if equilibration has been achieved"""
         data = pd.read_csv(
             self.energy, 
             delim_whitespace=True, 
@@ -158,6 +161,7 @@ class Manager:
             return False
 
     def run_equilibration(self):
+        """Executes the equilibration stage"""
         self.system.write_oxDNA(self.name)
         shutil.move(
             f'./oxdna.{self.name}.conf',
@@ -188,6 +192,7 @@ class Manager:
         return
 
     def run_replication(self):
+        """Executes the replication stage"""
         subprocess.check_output([
             self._oxDNA, 
             f'{self.root}/oxdna.replication.input'
@@ -195,7 +200,7 @@ class Manager:
         return
 
     def split_trajectory(self):
-
+        """Splits the trajectory into sub-configurations"""
         n_lines = len(self.system.nucleotides) + 3
         # get number of lines in trajectory
         with open('oxdna.main.traj', 'r') as f:
@@ -210,9 +215,11 @@ class Manager:
         return
 
     def tacoxDNA(self, function: str) -> str:
+        """Returns string of tacoxDNA executables"""
         return str(Path(self._tacoxDNA) / 'src' / f'{function}.py')
 
     def create_mother_system(self):
+        """Creates a large mother system"""
         m = np.ceil(np.cbrt(self.number)) 
         box = m * self.box
         mother = System([box, box, box])
@@ -264,3 +271,23 @@ class Manager:
         )
         shutil.move('out-3.pdb', f'{self.root}/mother.pdb')
         return
+
+    def cleanup_files(self):
+        """Delete all output files"""
+        shutil.move(
+            f'oxdna.{self.name}.traj'
+            f'{self.root}/oxdna.{self.name}.traj'
+        )
+        shutil.move(
+            f'oxdna.{self.name}.energy'
+            f'{self.root}/oxdna.{self.name}.energy'
+        )
+        for pattern in [
+            'out*',
+            'rb_*',
+            'last*',
+            'energy*'
+        ]:
+
+            for p in Path(".").glob(pattern):
+                p.unlink()
