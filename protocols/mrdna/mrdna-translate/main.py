@@ -71,6 +71,7 @@ class Job(Manager, Runner):
         # created PDB
         self.mrdna_simulate()
         # tidy up any files
+        self.cleanup_files()
         logger.info('Success!')
         return
 
@@ -86,8 +87,10 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument("-b", "--box", type=float, default=40., help='Length of cubic box')
-    parser.add_argument("-n", "--number", type=int, default=5, help='Number of replicas')
-    parser.add_argument("-s", "--spacing", type=int, default=5, help='Spacing between replicas')
+    parser.add_argument("-n", "--number", type=int, default=8, help='Number of replicas')
+    parser.add_argument("-l", "--length", type=int, default=16, help='Length of a single-stranded portion in between turns')
+    parser.add_argument("-s", "--stapled", type=int, default=5, help='Length of double-stranded portion')
+    parser.add_argument("--oxDNA", default='oxDNA', help='Path to oxDNA binary executable')
     parser.add_argument("--tacoxDNA", default=os.environ.get('TACOXDNA', None), help='Path to tacoxDNA root directory')
     parser.add_argument("--name", default='main', help='Naming-pattern for all of the resulting files')
     parser.add_argument("--root", default='data', help='Results Directory (will be created if it does not exist)')

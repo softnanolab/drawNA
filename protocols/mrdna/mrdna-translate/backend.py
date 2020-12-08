@@ -31,7 +31,8 @@ class Manager:
         self, 
         box: float, 
         number: int, 
-        spacing: float,
+        length: int,
+        stapled: int,
         tacoxDNA: str,
         root: str = 'data',
         name: str = 'main',
@@ -40,8 +41,9 @@ class Manager:
     ):
         self.box = box
         self.number = number
-        self.spacing = spacing
-        
+        self.length = length
+        self.stapled = stapled
+
         # check tacoxDNA is installed properly
         if tacoxDNA == None:
             logger.error(
@@ -75,7 +77,12 @@ class Manager:
 
     def generate_system(self):
         """Generate a simple oxDNA system"""
-        system = generate.generate_system([self.box] * 3) 
+        system = generate.generate_system(
+            [self.box] * 3,
+            n_strands=self.number,
+            length=self.length,
+            stapled=self.stapled
+        ) 
         self.system = system
         return system
 
@@ -107,7 +114,7 @@ class Manager:
             sim_type='MD',
             backend='CUDA',
             backend_precision='mixed',
-            steps=100000,
+            steps=1000000,
             newtonian_steps=103,
             diff_coeff=2.50,
             thermostat='john',
@@ -122,9 +129,9 @@ class Manager:
             time_scale='linear',
             external_forces=True,
             external_forces_file=self.forces,
-            print_conf_interval=100000,
+            print_conf_interval=1000000,
             print_energy_every=1000,
-            trajectory_file='oxdna.main.traj',
+            trajectory_file=f'oxdna.{self.name}.traj',
             lastconf_file=self.configuration
         )
 
@@ -183,7 +190,7 @@ class Manager:
             while not self.check_energy():
                 logger.info('Checking energy...')
                 subprocess.check_output([
-                    oxDNA, 
+                    self._oxDNA, 
                     f'{self.root}/oxdna.equilibration.input'
                 ])
         except KeyboardInterrupt:
@@ -263,8 +270,8 @@ class Manager:
         simulate(
             model, 
             'out', 
-            coarse_steps=100, 
-            fine_steps=100,
+            coarse_steps=100000, 
+            fine_steps=10000,
             coarse_output_period=1,
             fine_output_period=1,
             directory='.'
@@ -275,12 +282,12 @@ class Manager:
     def cleanup_files(self):
         """Delete all output files"""
         shutil.move(
-            f'oxdna.{self.name}.traj'
+            f'oxdna.{self.name}.traj',
             f'{self.root}/oxdna.{self.name}.traj'
         )
         shutil.move(
-            f'oxdna.{self.name}.energy'
-            f'{self.root}/oxdna.{self.name}.energy'
+            f'oxdna.energy',
+            f'{self.root}/oxdna.energy'
         )
         for pattern in [
             'out*',
