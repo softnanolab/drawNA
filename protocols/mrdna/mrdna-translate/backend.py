@@ -139,8 +139,8 @@ class Manager:
             pass
 
         elif stage == 'replication':
-            input_file['print_conf_interval'] = 10000
-            input_file['steps'] = 10000 * self.number
+            input_file['print_conf_interval'] = 100000
+            input_file['steps'] = 100000 * self.number
 
         # format string
         string = oxDNA_string(input_file)
@@ -290,7 +290,7 @@ class Manager:
             f'{self.root}/oxdna.energy'
         )
         for pattern in [
-            'out*',
+            'out-*',
             'rb_*',
             'last*',
             'energy*'
