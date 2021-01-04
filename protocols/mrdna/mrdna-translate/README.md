@@ -81,8 +81,8 @@ For the overall length, percentage stapled and lengths of staples **three input 
 ```python main.py -b 80. -n 4 -l 50 50 100 -ds 5 5 10 -p 40 20 60```
 
 
-![oxDNA output](img/oxDNA_output_example.png)
-
+![oxDNA output](img/oxDNA_output_example.png) 
+*`System` visualised using Ovito*
 
 ## Description
 
