@@ -77,8 +77,10 @@ Five input arguments are required: the overall length of a scaffold strand (-l),
 For the overall length, percentage stapled and lengths of staples three input arguments are required each at this point. This is to automatically create and simulate several systems with different parameters.
 
 For example:
+
 ```python main.py -b 80. -n 4 -l 50 50 100 -ds 5 5 10 -p 40 20 60```
-the three arguments required for -l -ds and -p represent [starting length/percentage, step length/percentage, end length/percentage]. In the default case 12 systems are generated and simulated.
+
+The three arguments required for -l -ds and -p represent [starting length/percentage, step length/percentage, end length/percentage]. In the default case 12 systems are generated and simulated.
 
 ## Description
 
