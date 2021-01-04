@@ -3,6 +3,7 @@ import re
 import os
 import shutil
 import subprocess
+import glob
 
 from pathlib import Path
 
@@ -31,8 +32,10 @@ class Manager:
         self, 
         box: float, 
         number: int, 
-        length: int,
-        stapled: int,
+        overall_length: int, #n_strands: int, #new
+        percent_stapled: int, #length: int,
+        length_stapled: int, #stapled: int,
+        sim_index: int,
         tacoxDNA: str,
         root: str = 'data',
         name: str = 'main',
@@ -41,8 +44,17 @@ class Manager:
     ):
         self.box = box
         self.number = number
-        self.length = length
-        self.stapled = stapled
+        # self.n_strands = n_strands #new
+        # NEW VARIABLES(ALFONSO)
+        self.overall_length = int(overall_length)
+        self.percent_stapled = percent_stapled
+        self.length_stapled = int(length_stapled)
+
+        self.simulation_index = sim_index
+
+        ######### 
+        #self.length = length
+        #self.stapled = stapled
 
         # check tacoxDNA is installed properly
         if tacoxDNA == None:
@@ -58,30 +70,19 @@ class Manager:
         # initialise filenames
         self.name = name
         self.root = root
-        if self.root:
-            Path(self.root).mkdir(exist_ok=True, parents=True)
 
-
-        self.topology = f'{self.root}/oxdna.{self.name}.top'
-        self.configuration = f'{self.root}/oxdna.{self.name}.conf'
-        self.configuration_template = f'{self.root}/oxdna.{self.name}.{{}}.conf'
         self.energy = energy
 
-        logger.debug('Initialised the following filenames:')
-        logger.debug(f'\tName         : {self.name}')
-        logger.debug(f'\tRoot         : {self.root}')
-        logger.debug(f'\tEnergy       : {self.energy}')
-        logger.debug(f'\tTopology     : {self.topology}')
-        logger.debug(f'\tConfiguration: {self.configuration}')
-        logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
+
+
 
     def generate_system(self):
         """Generate a simple oxDNA system"""
         system = generate.generate_system(
             [self.box] * 3,
-            n_strands=self.number,
+            n_strands=self.n_strands,  #or number
             length=self.length,
-            stapled=self.stapled
+            stapled=self.length_stapled
         ) 
         self.system = system
         return system
@@ -130,8 +131,8 @@ class Manager:
             external_forces=True,
             external_forces_file=self.forces,
             print_conf_interval=1000000,
-            print_energy_every=1000,
-            trajectory_file=f'oxdna.{self.name}.traj',
+            print_energy_every=100000,
+            trajectory_file=f'{self.file_path}/oxdna.{self.name}.traj',
             lastconf_file=self.configuration
         )
 
@@ -184,7 +185,7 @@ class Manager:
             subprocess.check_output([
                 self._oxDNA, 
                 f'{self.root}/oxdna.equilibration.input'
-            ])
+            ]) 
         
 
             while not self.check_energy():
@@ -192,7 +193,7 @@ class Manager:
                 subprocess.check_output([
                     self._oxDNA, 
                     f'{self.root}/oxdna.equilibration.input'
-                ])
+                ])  
         except KeyboardInterrupt:
             logger.debug('Caught KeyboardInterrupt successfully')
 
@@ -210,7 +211,7 @@ class Manager:
         """Splits the trajectory into sub-configurations"""
         n_lines = len(self.system.nucleotides) + 3
         # get number of lines in trajectory
-        with open('oxdna.main.traj', 'r') as f:
+        with open(self.file_path + '/' + 'oxdna.main.traj', 'r') as f:
             data = f.readlines().copy()
 
             for i in range(self.number):
@@ -270,13 +271,14 @@ class Manager:
         simulate(
             model, 
             'out', 
-            coarse_steps=100000, 
-            fine_steps=10000,
-            coarse_output_period=1,
-            fine_output_period=1,
+            coarse_steps=100000000, 
+            fine_steps=1000000,
+            coarse_output_period=100000,
+            fine_output_period=10000,
             directory='.'
         )
         shutil.move('out-3.pdb', f'{self.root}/mother.pdb')
+
         return
 
     def cleanup_files(self):
@@ -298,3 +300,82 @@ class Manager:
 
             for p in Path(".").glob(pattern):
                 p.unlink()
+
+    def define_multiple_systems(self):
+        """
+        Create multiple folders for each different simulation system 
+        and convert terminal input to generate_system input
+        """
+        print('In define_multiple_systems')
+
+        bases_needed = self.overall_length * (1/(100.0/self.percent_stapled))
+        self.n_strands = int(bases_needed/self.length_stapled)
+        if self.n_strands == 1:
+            logger.error(
+                'n_strands is 1 (number of turns is zero)! it has to be at least 2 in order for the code to work.'
+                'Decrease -ds or increase -l'
+                )
+
+        #Create simulation output folder
+        final_percentage = round(self.n_strands*self.length_stapled)/self.overall_length
+        self.length = int(self.overall_length/self.n_strands)
+
+        #adjust lengths between turns, overall_length and percentage if it doesnt end "6" (physical restriction) 
+        if repr(self.length)[-1] != "6":
+            list_of_length = list(repr(self.length))
+            list_of_length[-1] = "6"
+
+            string_of_length = ''.join(list_of_length)
+            self.length = int(string_of_length)
+
+            self.overall_length = self.length * self.n_strands
+            final_percentage = round(self.n_strands*self.length_stapled)/self.overall_length
+            
+
+        print(self.simulation_index)
+        self.file_path = "sim{}_l{}ds{}p{}".format(self.simulation_index,
+                                                   self.overall_length,
+                                                   self.length_stapled,
+                                                   int(final_percentage*100) )# % sim
+        # self.sim_path = self.file_path + "/sim"
+        # parameters['fpath'] = file_path
+
+        try:
+            os.mkdir(self.file_path)
+        except FileExistsError:
+            print('{} is being deleted'.format(self.file_path))
+            shutil.rmtree(self.file_path)
+            os.mkdir(self.file_path)
+        if self.root:
+            self.root = self.file_path + '/' + self.root
+            Path(self.root).mkdir(exist_ok=True, parents=True)
+        
+        self.topology = f'{self.root}/oxdna.{self.name}.top'
+        self.configuration = f'{self.root}/oxdna.{self.name}.conf'
+        self.configuration_template = f'{self.root}/oxdna.{self.name}.{{}}.conf'
+
+        logger.debug('Initialised the following filenames:')
+        logger.debug(f'\tName         : {self.name}')
+        logger.debug(f'\tRoot         : {self.root}')
+        logger.debug(f'\tEnergy       : {self.energy}')
+        logger.debug(f'\tTopology     : {self.topology}')
+        logger.debug(f'\tConfiguration: {self.configuration}')
+        logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
+        print('\tdone with define_multiple_systems')
+
+    def move_sim_files(self):
+        # make sure that the folder exists
+        try:
+            os.mkdir(self.file_path)
+        except FileExistsError:
+            pass
+        
+        temp_files_in_path = glob.glob('./*')
+        files_in_path = list()
+        for f in temp_files_in_path:
+            if 'sim' in f:
+                continue
+            files_in_path.append(f)
+        
+            shutil.move(os.path.join('./', f), self.file_path)
+

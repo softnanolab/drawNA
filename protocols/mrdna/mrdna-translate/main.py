@@ -4,6 +4,7 @@ from imports import *
 
 import os
 import shutil
+import numpy as np
 
 from pathlib import Path
 
@@ -22,6 +23,7 @@ class Job(Manager, Runner):
     @Runner.task(0)
     def initialise(self):
         logger.info('Running Initialisation...')
+        self.define_multiple_systems()
         self.generate_system()
         self.generate_forces()
         self.generate_input_file('equilibration')
@@ -71,16 +73,46 @@ class Job(Manager, Runner):
         # created PDB
         self.mrdna_simulate()
         # tidy up any files
-        self.cleanup_files()
+        #self.cleanup_files()
         logger.info('Success!')
         return
 
-def main(**kwargs):
-    # setup Job
-    job = Job(**kwargs)
+    @Runner.task(5)
+    def move(self):
+        logger.info('Moving everything...')
+        self.move_sim_files()
+        logger.info('Success!')
+        return
 
-    # execute Job
-    job.execute()
+
+
+
+
+
+def main(args):
+    total_length = np.arange(args['overall_length'][0], args['overall_length'][2]+1, args['overall_length'][1])
+    percentage = np.arange(args['percent_stapled'][0], args['percent_stapled'][2]+1, args['percent_stapled'][1])
+    stapled = np.arange(args['length_stapled'][0], args['length_stapled'][2]+1, args['length_stapled'][1])
+
+    sim_index = -1
+
+    for this_length in total_length:
+        for this_percentage in percentage:
+            for this_stapled in stapled:
+                kwargs = args.copy()
+                kwargs['overall_length'] = this_length
+                kwargs['percent_stapled'] = this_percentage
+                kwargs['length_stapled'] = this_stapled
+                kwargs['box'] = args['box']
+
+                sim_index += 1
+                kwargs['sim_index'] = sim_index
+          
+                # setup Job
+                job = Job(**kwargs)
+
+                # execute Job
+                job.execute()
     return
 
 if __name__ == "__main__":
@@ -88,10 +120,14 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("-b", "--box", type=float, default=40., help='Length of cubic box')
     parser.add_argument("-n", "--number", type=int, default=8, help='Number of replicas')
-    parser.add_argument("-l", "--length", type=int, default=16, help='Length of a single-stranded portion in between turns')
-    parser.add_argument("-s", "--stapled", type=int, default=5, help='Length of double-stranded portion')
+    #parser.add_argument("-ns", "--n_strands", type=int, default=8, help='Number of strands within one strand (defines number of turns)')
+    parser.add_argument("-l", "--overall_length", type=int, nargs=3, default=8, help='Number of strands within one strand (defines number of turns)')
+    #parser.add_argument("-l", "--length", type=int, default=16, help='Length of a single-stranded portion in between turns')
+    parser.add_argument("-p", "--percent_stapled", type=int, nargs=3, default=16, help='Length of a single-stranded portion in between turns')
+    #parser.add_argument("-s", "--stapled", type=int, default=5, help='Length of double-stranded portion')
+    parser.add_argument("-ds", "--length_stapled", type=int, nargs=3, default=5, help='Length of double-stranded portion')
     parser.add_argument("--oxDNA", default='oxDNA', help='Path to oxDNA binary executable')
     parser.add_argument("--tacoxDNA", default=os.environ.get('TACOXDNA', None), help='Path to tacoxDNA root directory')
     parser.add_argument("--name", default='main', help='Naming-pattern for all of the resulting files')
     parser.add_argument("--root", default='data', help='Results Directory (will be created if it does not exist)')
-    main(**vars(parser.parse_args()))
+    main(vars(parser.parse_args()))

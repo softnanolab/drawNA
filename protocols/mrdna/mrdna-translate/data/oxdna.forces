@@ -1,0 +1,7 @@
+{
+  type = sphere
+  particle = -1
+  center = 0., 0., 0.
+  r0 = 20.0
+  stiff = 5.0
+}
