@@ -83,7 +83,7 @@ For the overall length, percentage stapled and lengths of staples **three input 
 
 ![oxDNA_output](../../../img/oxDNA_output_example.png) 
 
-*`System` visualised using Ovito*
+*One strand in the `System` of an overall length of 50 bases of which 30 percent are stapled with dsDNA pieces of 5 bases length (visualised using Ovito).*
 
 ## Description
 
