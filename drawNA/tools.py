@@ -149,10 +149,10 @@ class DNAEdge:
 
         if not sequence:
             # in future version, this will not be so straightforward
-            no_of_nucleotides_in_edge = self.nt_length
+            no_of_nucleotides_in_edge = self.number_of_nt
         else:
             no_of_nucleotides_in_edge = len(sequence)
-            if len(sequence) >= self.nt_length:
+            if len(sequence) >= self.number_of_nt:
                 print(
                     f"FYI: The Length of `sequence` is longer than the max no. of nucleotides "
                     f"that can be contained within this edge, i.e. {self.nt_length} nucleotides"
