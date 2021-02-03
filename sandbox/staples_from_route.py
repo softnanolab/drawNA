@@ -12,6 +12,7 @@ import plotly.express as px
 from drawNA.polygons import BoundaryPolygon
 import math
 from copy import deepcopy
+from typing import List
 
 import itertools as it
 
@@ -77,20 +78,34 @@ class StapleCollection:
     """ Probably need to edit this such that
     it becomes easy to join staples on the same row together
     not sure, how to implement that yet """
-    def __init__(self, strands: List[Strand] = []):
-        self._strands = strands
+    def __init__(self, staple_strands: List[Strand] = [], scaffold_strand: LatticeRoute = None):
+        self._staples = staple_strands
+        self._scaffold = scaffold_strand
     
     @property
     def staples(self) -> List[Strand]:
         """List of staples as `Strand` objects"""
-        return self._strands
+        return self._staples
 
     @property
+    def scaffold(self) -> LatticeRoute:
+        """The Scaffold `Strand` object 
+        
+            Note: `LatticeRoute` is a subclass of `Strand`
+        """
+        return self._scaffold
+
+    def system(self, **kwargs) -> System:
+        _system = System(kwargs.get('box', np.array([50., 50., 50.])))
+        _system.add_strands(self.staples)
+        _system.add_strand(self.scaffold)
+        return _system
+    @property
     def n_staples(self) -> int:
-        return len(self._strands)
+        return len(self._staples)
 
     def add_staples(self, staple_strand: Strand):
-        self._strands.append(staple_strand)
+        self._staples.append(staple_strand)
 
     def plot_nodes(self, strand: Strand, ax, colour = 'r', width = 0.02, **kwargs):
         nodes = np.array(strand.nodes)
@@ -111,12 +126,13 @@ class StapleCollection:
                 length_includes_head=True, **kwargs)
     
 
-    def plot(self, route: LatticeRoute = None, fout: str = None):
+    def plot(self, fout: str = None):
         fig, ax = plt.subplots()
+        route = self.scaffold
         if route:
             self.plot_nodes(strand = route, ax = ax, colour = 'k', width = 0.1, alpha = 0.)
         for staple in self.staples:
-            colour = np.random.rand(3,)
+            colour = np.random.rand(3)
             self.plot_nodes(strand = staple, ax = ax, colour = colour)
         
         plt.gca().set_aspect(5)
@@ -143,8 +159,9 @@ class StapleBaseClass:
 
         self.lattice_width = int(self.bounds.max()+1) # +1 to account for counting starting at 0
         self.lattice = self.make_lattice(threshold = crossover_threshold)
+        self.staple_ID = 1
         print(f"StapleBaseClass generated.")
-
+    
     @property
     def row_size(self) -> List[int]:
         """ Returns length of all the rows"""
@@ -181,7 +198,7 @@ class StapleBaseClass:
         """ Returns the number of unpaired nucleotides on each row of the scaffold"""
         unpaired_nt = []
         for row in range(self.n_rows):
-            # count number of sites with a value of zero (as opposed to the name of the function lol)
+            # count number of sites with a value of zero (as opposed to the name of the function)
             unpaired_nt.append(np.count_nonzero(self.lattice[row,:,0]==0))
         return np.array(unpaired_nt)
         
@@ -206,7 +223,7 @@ class StapleBaseClass:
     def help_lattice(self):
         """How is this constructed?
         
-        Firstly, there are 3 layers (it is a 3D array [width, height, depth=2])
+        Firstly, there are 4 layers (it is a 3D array [width, height, depth=4])
             Where cells have the value 'None', means that no scaffold lives here
         
         Layer A: Contains the Staple ID (if exists) otherwise 0 for empty lattice site
@@ -471,13 +488,114 @@ class StapleBaseClass:
         assert _bounds.min() == 0
         return _bounds
 
-    def lattice_to_staples(self):
+    def staple_collection(self) -> StapleCollection:
         """ Converts `self.lattice` to staples using `self.scaffold_obj`
 
-        Generates staple 
-        
+        Generates staples in the following steps:
+        - Cycle through staples by staple_ID.
+        - First, find the indices of all the points where staple_ID exists
+        - Filter indices through layer 2, where values equal 10, 20 or 30 (start, crossover, terminus)
+        - Append the scaffold nucleotide index to each index (i.e. row, x-index)
+        - Order indices based on row
+        - Order indices such that S->C and C->T
+        - Order pairs of indices such that S->C...C->T
         """
-        pass
+        layer0 = self.lattice[:,:,0] # Staple_IDs
+        layer2 = self.lattice[:,:,2] # Special nucleotide: Start (10), Crossovers (20) or End (30). Otherwise (0).
+        layer3 = self.lattice[:,:,3] # Scaffold Indices
+
+        # Dictionary converter, float to staple type: Start, Crossover, End
+        flt_2_st = {0.0: 0.0, 10.0: 'S', 20.0: 'C', 30.0: 'T'}
+        staples = []
+
+        for staple_ID in np.arange(1, self.staple_ID):
+
+            # nested list of indices
+            # e.g. [ [0,0], [0,1], [0,2]...[0,21], [1,0], [1,1], [1,2]...[1,21] ]
+            staple_indices = np.argwhere(layer0 == staple_ID) 
+
+            # finds staple_type from layer2 and filters list to nt's of special type (S, C or T)
+            # e.g. [[ 0,0,'T' ], [ 0,21,'C' ], [ 1,21,'C' ], [ 1,0,'S' ], [1, 21, 'C']]
+            staple_indices_and_type = [ [int(row), int(x_index), flt_2_st[layer2[row, x_index]] ] 
+                                        for [row, x_index] in staple_indices if layer2[row, x_index] != 0]
+
+            # finds scaffold indices from layer3 and appends to each item in the list
+            # e.g. [[0, 0, 'T', 0.0], [0, 21, 'C', 21.0], [1, 0, 'S', 365.0], [1, 21, 'C', 344.0]]
+            staple_nodes_info = [ [ row, x_index, staple_type, int(layer3[row, x_index]) ]
+                                    for [row, x_index, staple_type] in staple_indices_and_type]
+
+            # e.g. [['1', '0', 'S', '365'], ['1', '21', 'C', '344'], ['0', '21', 'C', '21'], ['0', '0', 'T', '0']]
+            ordered_staple_nodes = self._order_staple_indices(staple_nodes_info)
+            
+            # e.g. [365, 344, 21, 0]
+            scaffold_node_indices = [int(info[3]) for info in ordered_staple_nodes]
+
+            # e.g. [[365, 344], [21, 0]]
+            no_of_domains = int(len(scaffold_node_indices)/2)
+            scaffold_domains = np.array(scaffold_node_indices).reshape(no_of_domains,2)
+
+            # [365, 363, ...345, 344, 21, 19, ... 1, 0]
+            all_scaffold_indices = self._make_indices(scaffold_domains)
+
+            staple_nuc = []
+            for index in all_scaffold_indices:
+                staple_nuc.append(self.scaffold_obj.nucleotides[index].make_across())
+            
+            staple = Strand(nucleotides=staple_nuc)
+            staples.append(staple)
+        
+        return StapleCollection(staple_strands = staples, scaffold_strand = self.scaffold_obj)
+    
+    @staticmethod
+    def _order_staple_indices(arr: List[list]) -> list:
+        """ Orders the staple indices for generating staples from the scaffold
+
+        The order will be organised such that the starting nucleotide (S) will be first between
+        each pair of nucleotides. And conversely, the terminating nucleotide (T) will be last
+        between each pair of nucleotides. 
+        
+        The nucleotides which are adjacent to a nucleotide on a different scaffold row 
+        (i.e. the corners of a staple) are the crossovers (C).
+
+        Arg:
+            arr 
+
+        Returns (list):
+            Such that S->C and C->T (or S->T for single domained staples)
+            AND SC is followed by CT (if it is not a single domained staple)
+
+            
+        """
+        # Ensure S is followed by C and C is followed by T
+        for i in np.arange(0,len(arr),2):
+            if arr[i+1][2] == 'S' or arr[i][2] == 'T':
+                arr[i], arr[i+1] = arr[i+1], arr[i]
+
+        # Ensure S is the first point of the first domain
+        if arr[0][2] != 'S':
+            arr = np.roll(arr,2,axis=0).tolist()
+
+        # Ensure T is the last point
+        assert arr[-1][2] == 'T', "Most certainly a coded in logic error"
+
+        return arr 
+
+    @staticmethod
+    def _make_indices(domain_pairs: List[list]) -> list:
+        """Makes a single list of integers depicting scaffold indices, in the correct order.
+
+        Arg:
+            domain_pairs (list(list)) - e.g. [ [0,10], [40,30] ]
+
+        Returns:
+            Using the example above it would be [0,1...10,40,39......31,30]
+
+            More importantly a range of {10 to 0} would be returned as 10,9,8...1,0
+        """
+        scaffold_indices = []
+        for [num1, num2] in domain_pairs:            
+            scaffold_indices += [i for i in np.linspace(num1, num2, num=abs(num1-num2)+1, dtype = int)]
+        return scaffold_indices
 
 class StaplingAlgorithm1(StapleBaseClass):
     """
@@ -486,7 +604,6 @@ class StaplingAlgorithm1(StapleBaseClass):
     def __init__(self, scaffold, domain_size=14, crossover_threshold=0.956):
         super().__init__(scaffold, crossover_threshold)
         self.domain_size = domain_size
-        self.staple_ID = 1
         print(self.info_dataframe)
         self.generate_side_staples()
     
@@ -694,8 +811,6 @@ class StaplingAlgorithm1(StapleBaseClass):
         # cycle through the rows in chunks (number of domains)
         pass
 
-
-
     def find_crossover(self,
             bound: int,
             row_index: int,
@@ -839,13 +954,18 @@ if __name__ == "__main__":
     [1.,3.,0.],[0.,3.,0.], [0.,2.,0.],[1.,2.,0.],[1.,1.,0.],[0.,1.,0.]
     ])
     square = np.array([[0,0,0],[10,0,0],[10,10,0],[0,10,0]])
-    route = generate(hourglass*5)
+    triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
+    trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
+    
+    route = generate(trapREV*8)
     route.plot()
-    staple_1 = StaplingAlgorithm1(route, crossover_threshold=0.956, domain_size=17)
-    staple_1.plot_lattice(layer=3)
-    display(staple_1.info_dataframe)
-    staple_1.plot_lattice(layer=0, show_staple_nodes=True)
-
+    staple_1 = StaplingAlgorithm1(route, crossover_threshold=0.956, domain_size=25)
+    # staple_1.plot_lattice(layer=3)
+    print(staple_1.info_dataframe)
+    # staple_1.plot_lattice(layer=0, show_staple_nodes=True)
+    collection_1 = staple_1.staple_collection()
+    system_1 = collection_1.system()
+    system_1.write_oxDNA(prefix="trap")
 
     # half_turn_indices   = [4, 15, 25, 36, 46, 56, 67, 77, 88, 98, 109]
     # staple_lengths      = [9, 31, 51, 73]
