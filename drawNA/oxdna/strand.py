@@ -57,6 +57,7 @@ class Strand:
 
         self.index = 1
         self._nucleotide_shift = 0
+        self.circular = False
 
     def __repr__(self):
         return f"3>[{self.index}]>{self.sequence}>>5"
@@ -89,6 +90,11 @@ class Strand:
             else:
                 nucleotide._after = i + 1 + self._nucleotide_shift
             nucleotide._strand_index = self.index
+
+        if self.circular:
+            self._nucleotides[0].before = self._nucleotides[-1].index
+            self._nucleotides[-1].after = self._nucleotides[0].index
+            
         return self._nucleotides
 
     def add_nucleotide(self, nucleotide: Nucleotide):
