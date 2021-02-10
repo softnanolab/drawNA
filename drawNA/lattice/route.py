@@ -160,7 +160,7 @@ class LatticeRoute(Strand):
             plt.savefig(fout, dpi=500)
         plt.show()
 
-    def system(self, strands = None, **kwargs):
+    def system(self, strands = None, **kwargs) -> System:
         _strand = [self.get_strand()[0]]
         if strands:
             for strand in strands:
