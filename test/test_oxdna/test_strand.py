@@ -168,8 +168,8 @@ def test_strand_transform():
     ]))
     strand.circular = True
     nts = strand.nucleotides
-    assert nts[0].before == nts[-1].index
-    assert nts[-1].after == nts[0].index
+    assert nts[0]._before == nts[-1].index
+    assert nts[-1]._after == nts[0].index
     return
 
 
