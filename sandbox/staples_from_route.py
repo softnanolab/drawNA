@@ -16,63 +16,63 @@ from typing import List
 
 import itertools as it
 
-class StapleNode(DNANode):
-    def __init__(self, position : np.ndarray):
-        super().__init__(position)
+# class StapleNode(DNANode):
+#     def __init__(self, position : np.ndarray):
+#         super().__init__(position)
 
-class StapleEdge(DNAEdge):
-    def __init__(self, vertex_1: StapleNode, vertex_2: StapleNode):
-        super().__init__(vertex_1, vertex_2)
+# class StapleEdge(DNAEdge):
+#     def __init__(self, vertex_1: StapleNode, vertex_2: StapleNode):
+#         super().__init__(vertex_1, vertex_2)
 
-class StapleRoute(Strand):
-    """T0D0 - Re-write this function"""
-    def __init__(self, scaffold_rows: List[Strand], nodes: List[StapleNode] = []):
+# class StapleRoute(Strand):
+#     """T0D0 - Re-write this function"""
+#     def __init__(self, scaffold_rows: List[Strand], nodes: List[StapleNode] = []):
 
-        self._nodes = nodes
-        self._scaffold_rows = scaffold_rows
-        self.update_strand_and_nucleotides()
-        super().__init__(self._nucleotides)
+#         self._nodes = nodes
+#         self._scaffold_rows = scaffold_rows
+#         self.update_strand_and_nucleotides()
+#         super().__init__(self._nucleotides)
 
-    @property
-    def nodes(self) -> List[StapleNode]:
-        return self._nodes
+#     @property
+#     def nodes(self) -> List[StapleNode]:
+#         return self._nodes
 
-    @property
-    def edges(self):
-        _edges = [StapleEdge(node, self.nodes[i+1]) for i, node in enumerate(self.nodes[:-1])]
-        return _edges
+#     @property
+#     def edges(self):
+#         _edges = [StapleEdge(node, self.nodes[i+1]) for i, node in enumerate(self.nodes[:-1])]
+#         return _edges
     
-    @property
-    def scaffold_rows(self) -> List[Strand]:
-        """ Returns scaffold as it's constituent rows"""
-        return self._scaffold_rows
+#     @property
+#     def scaffold_rows(self) -> List[Strand]:
+#         """ Returns scaffold as it's constituent rows"""
+#         return self._scaffold_rows
 
-    def update_strand_and_nucleotides(self, **kwargs):
-        self._nucleotides = []
-        for i, edge in enumerate(self.edges):
-            if i % 2 == 1:
-                continue
+#     def update_strand_and_nucleotides(self, **kwargs):
+#         self._nucleotides = []
+#         for i, edge in enumerate(self.edges):
+#             if i % 2 == 1:
+#                 continue
 
-            x1 = int(edge.vertices[0][0])
-            x2 = int(edge.vertices[1][0])
-            row = int(edge.vertices[0][1])
-            if len(self.scaffold_rows) - 1 == row:
-                break
-            nucleotides = []
-            scaffold_row = self.scaffold_rows[row]
+#             x1 = int(edge.vertices[0][0])
+#             x2 = int(edge.vertices[1][0])
+#             row = int(edge.vertices[0][1])
+#             if len(self.scaffold_rows) - 1 == row:
+#                 break
+#             nucleotides = []
+#             scaffold_row = self.scaffold_rows[row]
             
-            if x1 > x2:
-                x1, x2 = x2, x1
-                for nucleotide in scaffold_row.nucleotides[x1:x2+1]:
-                    nucleotides.append(nucleotide.make_across())
-                # switch the order of the nucleotides back again
-                nucleotides = nucleotides[::-1]
-            else:
-                for nucleotide in scaffold_row.nucleotides[::-1][x1:x2+1]:
-                    nucleotides.append(nucleotide.make_across())
+#             if x1 > x2:
+#                 x1, x2 = x2, x1
+#                 for nucleotide in scaffold_row.nucleotides[x1:x2+1]:
+#                     nucleotides.append(nucleotide.make_across())
+#                 # switch the order of the nucleotides back again
+#                 nucleotides = nucleotides[::-1]
+#             else:
+#                 for nucleotide in scaffold_row.nucleotides[::-1][x1:x2+1]:
+#                     nucleotides.append(nucleotide.make_across())
  
-            for nucleotide in nucleotides:
-                self._nucleotides.append(nucleotide)
+#             for nucleotide in nucleotides:
+#                 self._nucleotides.append(nucleotide)
 
 class StapleCollection:
     """ Probably need to edit this such that
@@ -108,6 +108,7 @@ class StapleCollection:
         self._staples.append(staple_strand)
 
     def plot_nodes(self, strand: Strand, ax, colour = 'r', width = 0.02, **kwargs):
+        """T0D0: Rewrite"""
         nodes = np.array(strand.nodes)
         #plt.grid(True)
         ax.plot(nodes[:, 0], nodes[:, 1], 'bx', ms = 0.5)
@@ -127,6 +128,7 @@ class StapleCollection:
     
 
     def plot(self, fout: str = None):
+        """T0D0: Rewrite"""
         fig, ax = plt.subplots()
         route = self.scaffold
         if route:
@@ -176,7 +178,7 @@ class StapleBaseClass:
     def start_side(self) -> List[str]:
         """ 
         Returns which side is the 3' for each row, i.e.:
-        3' >> 5' = left   or  5' << 3' = right
+        3' to 5' = left   or  5' from 3' = right
         """
         return np.array(self._start_side)
 
@@ -184,6 +186,21 @@ class StapleBaseClass:
     def bounds(self) -> list:
         """ Returns x coord of start (3') and end (5') of each row """
         return np.array(self._bounds)
+
+    @property
+    def unpaired_nt(self) -> List[int]:
+        """ Returns the number of unpaired nucleotides on each row of the scaffold"""
+        unpaired_nt = []
+        for row in range(self.n_rows):
+            # count number of sites with a value of zero (as opposed to the name of the function)
+            unpaired_nt.append(np.count_nonzero(self.lattice[row,:,0]==0))
+
+        return np.array(unpaired_nt)
+    
+    @property
+    def total_unpaired_nt(self) -> List[int]:
+        """ Returns the total number of unpaired nucleotides in the configuration"""
+        return np.sum(self.unpaired_nt)
 
     def start(self) -> list:
         """ Returns x coord of start (3' side) """
@@ -193,15 +210,68 @@ class StapleBaseClass:
         """ Returns x coord of end (5' side) """
         return self._bounds[:,1]
 
-    @property
-    def unpaired_nt(self) -> List[int]:
-        """ Returns the number of unpaired nucleotides on each row of the scaffold"""
-        unpaired_nt = []
+
+    def get_number_of_nt(self) -> list:
+        print("Retrieving Row Sizes")
+        """ Returns length of all the rows"""
+        _row_sizes = []
+        for i in range(0,len(self.route.edges),2):
+            _row_sizes.append(self.route.edges[i].number_of_nt)
+
+            # Assertion each edge should equal length of sequence in scaffold rows
+            assert _row_sizes[int(i/2)] == len(self.row_seq[int(i/2)])
+        return _row_sizes
+
+    def get_row_sequence(self):
+        print("Retrieving Row Sequences")
+        "Returns sequence (for the 3' >> 5' direction) for each row"
+        row_seq = []
+        for i in range(0,self.n_rows):
+            row_seq.append(self.scaffold_rows[i].sequence)
+        return row_seq
+
+    def get_start_side(self) -> list:
+        print("Retrieving Start Side")
+        """ 
+        Returns which side is the 3' for each row, i.e.:
+        3' >> 5' = left   or  5' << 3' = right
+        """
+        _start_side = []
+        route = self.route
+        for i in range(0,len(route.nodes), 2):
+            side = "left" if route.nodes[i][0]-route.nodes[i+1][0] < 0 else "right"
+            _start_side.append(side)
+        return _start_side
+
+    def construct_bounds(self) -> List[List[int]]: #as np.ndarray
+        print("Retrieving Bounds")
+        """ Returns x-coord of start (3' side) and end (5' side) nodes """
+        _bounds = []
+
+        ## Find x-coords
+        x_pos = 0.0 # Initialise to 0x
         for row in range(self.n_rows):
-            # count number of sites with a value of zero (as opposed to the name of the function)
-            unpaired_nt.append(np.count_nonzero(self.lattice[row,:,0]==0))
-        return np.array(unpaired_nt)
-        
+            if self.start_side[row] == "left":
+                x_3p = x_pos 
+                x_5p = x_pos + self.row_size[row] - 1 
+
+            elif self.start_side[row] == "right":
+                x_3p = x_pos
+                x_5p = x_pos - self.row_size[row] + 1
+
+            else:
+                print("Something has gone very wrong, this should not happen")
+            
+            _bounds.append([x_3p, x_5p])
+
+            x_pos = x_5p
+
+        ## Normalise bounds to start at 0
+        _bounds = np.array(_bounds, dtype=int)
+        _bounds -= _bounds.min()
+        assert _bounds.min() == 0
+        return _bounds
+
     @property
     def info_dataframe(self):
         """Returns scaffold geometry information.
@@ -220,9 +290,10 @@ class StapleBaseClass:
                 "no. of unpaired nt": self.unpaired_nt
             })
     
-    def help_lattice(self):
-        """How is this constructed?
-        
+    def make_lattice(self, threshold) -> np.ndarray:
+        """
+        This generates a 3D numpy array (n x rows x 2) with 4 layers.
+
         Firstly, there are 4 layers (it is a 3D array [width, height, depth=4])
             Where cells have the value 'None', means that no scaffold lives here
         
@@ -258,12 +329,6 @@ class StapleBaseClass:
             
             This is important for converting the staple array to a collection of staples
         """
-    
-    def make_lattice(self, threshold) -> np.ndarray:
-        """
-        This generates a 3D numpy array (n x rows x 2)
-        star
-        """
         # Create a correctly sized lattice filled with 0's
         lattice = np.zeros((self.n_rows,self.lattice_width))
 
@@ -293,28 +358,39 @@ class StapleBaseClass:
 
     def make_layerB(self, lattice, threshold):
         """
-        Layer B contains all crossover positions along each scaffold helix
+        Layer B stores all crossover positions along each scaffold helix
         i.e. 1 (crossover up) -1 (crossover down)
         
+        By filtering through the a1 vector of all the nucleotides, those furthest from the
+        central helical axes in the XY plane (i think) are deemed the "crossover" positions.
+
+        The a1 vector seems to lie in the range of -1.09 < a1 > 1.09 [roughly]
+
         Parameters:
             lattice (np.array): contains 0 (empty lattice sites) and None (invalid lattice sites)
             threshold (int): y distance from central helical axis 
+
+        Yields a lattice where:
+            1   (crossover up)
+            -1  (crossover down)
+            0   (non crossover positions) [unchanged]
+            None (non scaffold positions) [unchanged]
         
         """
 
         ## PSEUDO CODE
-        # for a strand, find the a1 vector of each nucleotide
-        # if this vector is greater than the +ve threshold value then return the x position and "U"
-        # if this vector is smaller than the -ve threshold value then return the x position and "D"
-        # update the row of the lattice representing that strand with U and D at specified x positions from the starting point of that strand in the lattice
         # repeat for all the strands in the scaffold
+        # for a strand, find the a1 vector of each nucleotide
+            # if this vector is greater than the +ve threshold value then return the x position and "U"
+            # if this vector is smaller than the -ve threshold value then return the x position and "D"
+            # update the row of the lattice representing that strand with U and D at specified x positions from the starting point of that strand in the lattice
         layerB = lattice
         
         for row_N, strand in enumerate(self.scaffold_rows):
             # Find nucleotide distance from central axis of the helix
             distance_from_central_axis = []
             distance_from_central_axis = [nuc._a1[1] for nuc in strand.nucleotides]
-            print(f"Row: {row_N}, Distance from Central: {len(distance_from_central_axis)}, Number of zeros: {np.count_nonzero(layerB[row_N,:]== 0)}")
+            # print(f"Row: {row_N}, Distance from Central: {len(distance_from_central_axis)}, Number of zeros: {np.count_nonzero(layerB[row_N,:]== 0)}")
             assert len(distance_from_central_axis) == np.count_nonzero(layerB[row_N,:]== 0)
 
             # Find indices where crossover is possible
@@ -380,7 +456,7 @@ class StapleBaseClass:
 
         return lattice
 
-    def plot_lattice(self,layer = 1, aspect = 6, show_staple_nodes = False):
+    def plot_lattice(self,layer = 0, aspect = 6, show_staple_nodes = False):
         lattice_2D = self.lattice[:,:, layer]
         fig, ax = plt.subplots(figsize=(15,15))
         # fig.set_facecolor("grey")
@@ -412,12 +488,6 @@ class StapleBaseClass:
                     else:
                         text = ""
                     ax.text(j, i, text,ha="center", va="center", color="w")
-        ## For layerD
-        # lattice_crossovers = self.lattice[:,:, 1]
-        # for i in range(lattice_crossovers.shape[0]):
-        #     for j in range(lattice_crossovers.shape[1]):
-        #         text = lattice_crossovers[i, j]
-        #         ax.text(j, i, text,ha="center", va="center", color="w", fontsize=5, rotation = 90)
 
         plt.gca().set_aspect(aspect)
         plt.gca().invert_yaxis()
@@ -425,68 +495,57 @@ class StapleBaseClass:
         ax.set_xlabel("No. of nucleotides")
         ax.set_ylabel("Scaffold row strands")
         plt.show()
-        return None
+        return
 
-    def get_number_of_nt(self) -> list:
-        print("Retrieving Row Sizes")
-        """ Returns length of all the rows"""
-        _row_sizes = []
-        for i in range(0,len(self.route.edges),2):
-            _row_sizes.append(self.route.edges[i].number_of_nt)
-
-            # Assertion each edge should equal length of sequence in scaffold rows
-            assert _row_sizes[int(i/2)] == len(self.row_seq[int(i/2)])
-        return _row_sizes
-
-    def get_row_sequence(self):
-        print("Retrieving Row Sequences")
-        "Returns sequence (for the 3' >> 5' direction) for each row"
-        row_seq = []
-        for i in range(0,self.n_rows):
-            row_seq.append(self.scaffold_rows[i].sequence)
-        return row_seq
-
-    def get_start_side(self) -> list:
-        print("Retrieving Start Side")
-        """ 
-        Returns which side is the 3' for each row, i.e.:
-        3' >> 5' = left   or  5' << 3' = right
+    def fill_lattice_with_single_domains(self):
+        """Adds single domained staples to all un-paired nucleotide sections in the lattice 
+        
+        T0D0 Future: 
+            - add the ability to staple sections of each row, i.e. if the staples aren't at the edges, there would be 2-3 staples on one row
+            - only do this where there is a sufficient number of nucleotides
         """
-        _start_side = []
-        route = self.route
-        for i in range(0,len(route.nodes), 2):
-            side = "left" if route.nodes[i][0]-route.nodes[i+1][0] < 0 else "right"
-            _start_side.append(side)
-        return _start_side
 
-    def construct_bounds(self) -> List[List[int]]: #as np.ndarray
-        print("Retrieving Bounds")
-        """ Returns x-coord of start (3' side) and end (5' side) nodes """
-        _bounds = []
+        lattice = self.lattice[:,:,0]
+        info = self.info_dataframe
 
-        ## Find x-coords
-        x_pos = 0.0 # Initialise to 0x
-        for row in range(self.n_rows):
-            if self.start_side[row] == "left":
-                x_3p = x_pos 
-                x_5p = x_pos + self.row_size[row] - 1 
+        for row, lattice_row in enumerate(lattice):
+            unstapled_nt_indices = np.where(lattice_row == 0)[0]
 
-            elif self.start_side[row] == "right":
-                x_3p = x_pos
-                x_5p = x_pos - self.row_size[row] + 1
-
+            if info['no. of unpaired nt'][row] <= 2:
+                continue
+            elif info['start side'][row] == 'right':
+                staple_node_S = [unstapled_nt_indices[0], row, 'S']
+                staple_node_T = [unstapled_nt_indices[-1], row, 'T']
             else:
-                print("Something has gone very wrong, this should not happen")
+                staple_node_S = [unstapled_nt_indices[-1], row, 'S']
+                staple_node_T = [unstapled_nt_indices[0], row, 'T']
             
-            _bounds.append([x_3p, x_5p])
+            staple = [staple_node_S, staple_node_T]
+            self.write_nodes_to_array([staple])
 
-            x_pos = x_5p
-
-        ## Normalise bounds to start at 0
-        _bounds = np.array(_bounds, dtype=int)
-        _bounds -= _bounds.min()
-        assert _bounds.min() == 0
-        return _bounds
+    def write_nodes_to_array(self, staples: list):
+        assert type(staples) == list
+        assert len(staples) <= 2
+        staple_type_to_int = {'S': 10, 'C': 20, 'T':30}
+        for staple in staples:
+            for node in staple:
+                # assign type of staple ('S' 'T' or 'C') to lattice C(2)
+                [x, row, staple_type] = node 
+                # print(f"Node: {node}")
+                self.lattice[row, x, 2] = staple_type_to_int[staple_type]
+            
+            for i in range(0, len(staple),2):
+                node_1 = staple[i]
+                node_2 = staple[i+1]
+                # assign staple_ID to lattice A(0) for all staple nt's
+                domain = np.sort([ node_1[0], node_2[0] ])
+                print(f"Writing staple #{self.staple_ID} with domain: {domain} on row ~{row}")
+                assert node_1[1] == node_2[1]
+                row = node_1[1]
+                self.lattice[row, domain[0]:domain[1]+1, 0] = self.staple_ID
+            
+            self.staple_ID += 1
+            # print(f"Written staples into array. ID: {self.staple_ID}")
 
     def staple_collection(self) -> StapleCollection:
         """ Converts `self.lattice` to staples using `self.scaffold_obj`
@@ -564,7 +623,6 @@ class StapleBaseClass:
             Such that S->C and C->T (or S->T for single domained staples)
             AND SC is followed by CT (if it is not a single domained staple)
 
-            
         """
         # Ensure S is followed by C and C is followed by T
         for i in np.arange(0,len(arr),2):
@@ -576,7 +634,7 @@ class StapleBaseClass:
             arr = np.roll(arr,2,axis=0).tolist()
 
         # Ensure T is the last point
-        assert arr[-1][2] == 'T', "Most certainly a coded in logic error"
+        assert arr[-1][2] == 'T', f"Most certainly a coded in logic error: {arr}"
 
         return arr 
 
@@ -604,7 +662,7 @@ class StaplingAlgorithm1(StapleBaseClass):
     def __init__(self, scaffold, domain_size=14, crossover_threshold=0.956):
         super().__init__(scaffold, crossover_threshold)
         self.domain_size = domain_size
-        print(self.info_dataframe)
+        print("Generating side staples")
         self.generate_side_staples()
     
     def generate_side_staples(self):
@@ -616,7 +674,7 @@ class StaplingAlgorithm1(StapleBaseClass):
             # The number of rows is odd, the last row will be single domained
             if row1_idx == (self.n_rows - 1):
                 single_domain = True
-                print(f"single domain: {row1_idx, self.n_rows}")
+                # print(f"single domain: {row1_idx, self.n_rows}")
             else:
                 single_domain = False
 
@@ -911,29 +969,7 @@ class StaplingAlgorithm1(StapleBaseClass):
 
         return int(x_index)
 
-    def write_nodes_to_array(self, staples: list):
-        assert type(staples) == list
-        assert len(staples) <= 2
-        staple_type_to_int = {'S': 10, 'C': 20, 'T':30}
-        for staple in staples:
-            for node in staple:
-                # assign type of staple ('S' 'T' or 'C') to lattice C(2)
-                [x, row, staple_type] = node 
-                # print(f"Node: {node}")
-                self.lattice[row, x, 2] = staple_type_to_int[staple_type]
-            
-            for i in range(0, len(staple),2):
-                node_1 = staple[i]
-                node_2 = staple[i+1]
-                # assign staple_ID to lattice A(0) for all staple nt's
-                domain = np.sort([ node_1[0], node_2[0] ])
-                print(f"Domain: {domain}")
-                assert node_1[1] == node_2[1]
-                row = node_1[1]
-                self.lattice[row, domain[0]:domain[1]+1, 0] = self.staple_ID
-            
-            self.staple_ID += 1
-            print(f"Written staples into array. ID: {self.staple_ID}")
+
 
 
 ## Copied from protocols/lattice-route/DNA_snake.py
@@ -957,15 +993,16 @@ if __name__ == "__main__":
     triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
     
-    route = generate(trapREV*8)
-    route.plot()
+    route = generate(square*10)
+    # route.plot()
     staple_1 = StaplingAlgorithm1(route, crossover_threshold=0.956, domain_size=25)
     # staple_1.plot_lattice(layer=3)
     print(staple_1.info_dataframe)
-    # staple_1.plot_lattice(layer=0, show_staple_nodes=True)
+    staple_1.plot_lattice(layer=0, show_staple_nodes=True)
+    staple_1.fill_lattice_with_single_domains()
     collection_1 = staple_1.staple_collection()
-    system_1 = collection_1.system()
-    system_1.write_oxDNA(prefix="trap")
+    # system_1 = collection_1.system()
+    # system_1.write_oxDNA(prefix="trap")
 
     # half_turn_indices   = [4, 15, 25, 36, 46, 56, 67, 77, 88, 98, 109]
     # staple_lengths      = [9, 31, 51, 73]
