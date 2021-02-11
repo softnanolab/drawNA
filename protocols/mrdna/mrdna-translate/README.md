@@ -1,4 +1,4 @@
-#mrDNA Translate
+# mrDNA Translate
 
 ## Summary
 
@@ -17,8 +17,10 @@ In this directory is an example of how to run mrDNA using Python whilst creating
     - `pandas`
 
 - `CUDA`
-This is a GPU interface for NVIDIA GPUs, if you do not have a CUDA GPU, then you cannot use mrDNA and you  cannot use this example.
-
+This is a GPU interface for NVIDIA GPUs, if you do not have a CUDA GPU, then you cannot use mrDNA and you  cannot use this example. Load the CUDA module:
+```
+load module CUDA
+```
 
 - `cadnano2.5`
 The classic DNA design program can be installed like this:
@@ -71,7 +73,17 @@ popd
 
 ## Usage
 
-```python main.py```
+Five input arguments are required: the overall length of a scaffold strand **(-l)**, the percentage of this scaffold strand **(-p)** that will be stapled with shorter staple strands and the length of these stapled sections **(-ds)**. In addition to this the box size can be defined manually and should be adjusted according to the strand length **(-b)**. The number of replicas of the system can be adjusted with **-n**.
+For the overall length, percentage stapled and lengths of staples **three input arguments are required each at this point**. This is to automatically create and simulate several systems with different parameters. The three arguments required for -l -ds and -p represent [starting length/percentage, step length/percentage, end length/percentage]. In the default case 12 systems are generated and simulated.
+
+## :bulb: Example 
+
+```python main.py -b 80. -n 4 -l 50 50 100 -ds 5 5 10 -p 40 20 60```
+
+
+![oxDNA_output](../../../img/oxDNA_output_example.png) 
+
+*One strand in the `System` of an overall length of 50 bases of which 30 percent are stapled with dsDNA pieces of 5 bases length (visualised using Ovito).*
 
 ## Description
 
