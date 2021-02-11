@@ -43,3 +43,12 @@ except ImportError:
         'softnanotools is not installed, '
         'install using `pip install softnanotools`'
     )
+
+#logger.info('Trying to import vmd...')
+#try:
+#    import vmd
+#    logger.info('Success!')
+#except ImportError:
+#    raise ImportError(
+#        'vmd is not installed, '
+#    )

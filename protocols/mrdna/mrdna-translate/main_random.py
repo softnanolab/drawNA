@@ -12,7 +12,7 @@ from softnanotools.runner import Runner
 from softnanotools.logger import Logger
 logger = Logger(__name__)
 
-from backend import Manager
+from backend_random import Manager
 
 class Job(Manager, Runner):
     def __init__(self, **kwargs):
@@ -23,8 +23,18 @@ class Job(Manager, Runner):
     @Runner.task(0)
     def initialise(self):
         logger.info('Running Initialisation...')
-        self.define_multiple_systems()
-        self.generate_system()
+       # self.define_multiple_systems()
+
+
+       # self.define_random_system()
+        self.define_loop_system()
+       # self.define_exact_system('20_string.txt')
+
+       # self.generate_system()
+        self.generate_loop_system()
+       # self.generate_exact_system()
+
+
         self.generate_forces()
         self.generate_input_file('equilibration')
         logger.info('Success!')
@@ -90,7 +100,10 @@ def main(args):
     percentage = np.arange(args['percent_stapled'][0], args['percent_stapled'][2]+1, args['percent_stapled'][1])
     stapled = np.arange(args['length_stapled'][0], args['length_stapled'][2]+1, args['length_stapled'][1])
 
+    binary = '20_string.txt'
+
     sim_index = -1
+
 
     for this_length in total_length:
         for this_percentage in percentage:

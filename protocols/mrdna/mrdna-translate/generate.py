@@ -1,5 +1,6 @@
 from drawNA.oxdna import Strand, Nucleotide, System
 from drawNA.oxdna.strand import generate_helix, POS_BACK
+import numpy as np
 
 FENE_LENGTH = 0.76
 
@@ -7,7 +8,8 @@ FENE_LENGTH = 0.76
 def generate_system(box, length=16, n_strands=10, stapled=5):
     strands = []
     doubles = []
-    strand, double = generate_helix(n=length, double=True)
+    #move_start_position = -(box/2.3)
+    strand, double = generate_helix(n=length, double=True, start_position=np.array([0., 0., 0.]))
     strands.append(strand.copy())
     doubles.append(double.copy())
 

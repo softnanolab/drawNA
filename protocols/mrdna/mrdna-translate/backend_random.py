@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 from imports import *
-import generate
+import generate_random
 
 from softnanotools.logger import Logger
 logger = Logger('Manager')
@@ -41,6 +41,7 @@ class Manager:
         name: str = 'main',
         energy: str = 'oxdna.energy',
         oxDNA: str = 'oxDNA'
+       # binary: str# = '20_string.txt'
     ):
         self.box = box
         self.number = number
@@ -51,10 +52,7 @@ class Manager:
         self.length_stapled = int(length_stapled)
 
         self.simulation_index = sim_index
-
-        ######### 
-        #self.length = length
-        #self.stapled = stapled
+        #self.binary_file = binary
 
         # check tacoxDNA is installed properly
         if tacoxDNA == None:
@@ -78,11 +76,37 @@ class Manager:
 
     def generate_system(self):
         """Generate a simple oxDNA system"""
-        system = generate.generate_system(
+        system = generate_random.generate_system_all_random(
             [self.box] * 3,
             n_strands=self.n_strands,  #or number
             length=self.length,
-            stapled=self.length_stapled
+            stapled=self.length_stapled,
+            percentage=self.percent_stapled
+        ) 
+        self.system = system
+        return system
+
+    def generate_exact_system(self):
+        """Generate a simple oxDNA system"""
+        system = generate_random.generate_exact_system(
+            [self.box] * 3,
+            n_strands=self.n_strands,  #or number
+            length=self.length,
+            stapled=self.length_stapled,
+            percentage=self.percent_stapled,
+            binary_file='20_string.txt'#self.binary_file
+        ) 
+        self.system = system
+        return system
+
+    def generate_loop_system(self):
+        """Generate a simple oxDNA system"""
+        system = generate_random.generate_loop_random(
+            [self.box] * 3,
+            n_strands=self.n_strands,  #or number
+            length=self.length,
+            stapled=self.length_stapled,
+            percentage=self.percent_stapled,
         ) 
         self.system = system
         return system
@@ -114,13 +138,13 @@ class Manager:
         input_file = dict(
             sim_type='MD',
             backend='CUDA',
-            CUDA_device = 1,
+            CUDA_device = 0,
             backend_precision='mixed',
-            steps=1000000,
+            steps=10000, #1000000,
             newtonian_steps=103,
             diff_coeff=2.50,
             thermostat='john',
-            T=0.115, #0.110 #0.1 represents 300K. However, at room temp equilibration takes very long
+            T=0.1, #0.110 #0.1 represents 300K. However, at room temp equilibration takes very long
             dt=0.005,
             verlet_skin=0.05,
             topology=self.topology,
@@ -131,8 +155,8 @@ class Manager:
             time_scale='linear',
             external_forces=True,
             external_forces_file=self.forces,
-            print_conf_interval=10000,
-            print_energy_every=1000,
+            print_conf_interval=10000, #10000,
+            print_energy_every=1000, #1000,
             trajectory_file=f'{self.file_path}/oxdna.{self.name}.traj',
             lastconf_file=self.configuration
         )
@@ -141,12 +165,12 @@ class Manager:
             pass
 
         elif stage == 'replication':
-            input_file['print_conf_interval'] = 100000
-            input_file['steps'] = 100000 * self.number
+            input_file['print_conf_interval'] = 10000#100000
+            input_file['steps'] = 10000 * self.number #100000 * self.number
 
-        elif stage == 'box_reduction':
-            input_file['print_conf_interval'] = 100000
-            input_file['steps'] = 100000 * self.number
+      #  elif stage == 'box_reduction':
+      #      input_file['print_conf_interval'] = 100000
+      #      input_file['steps'] = 100000 * self.number
 
         # format string
         string = oxDNA_string(input_file)
@@ -168,7 +192,7 @@ class Manager:
         )
         gradient = np.gradient(data[3][-50:]).mean()
         logger.debug(f'Checking {self.energy}, gradient={gradient}')
-        if abs(gradient) < 1e-3:
+        if abs(gradient) < 1e-1: #1e-3:
             return True
         else:
             return False
@@ -303,16 +327,16 @@ class Manager:
 
 
 
-        # try reduction of box size instead of applying pressure
-        logger.info(f'>>> Running box reduction on mother system')
-        self.topology = f'oxdna.mother.top'
-        self.configuration = f'oxdna.mother.conf'
+      #  # try reduction of box size instead of applying pressure
+      #  logger.info(f'>>> Running box reduction on mother system')
+      #  self.topology = f'oxdna.mother.top'
+      #  self.configuration = f'oxdna.mother.conf'
 
-        self.generate_input_file('box_reduction')
+       # self.generate_input_file('box_reduction')
 
-        self.run_box_reduction()
+       # self.run_box_reduction()
 
-        logger.info(f'>>> Box reduction finished!')
+       # logger.info(f'>>> Box reduction finished!')
 
 
         logger.info(f'>>> Exporting mother to PDB')
@@ -344,10 +368,11 @@ class Manager:
             simulate(
                 model, 
                 'out', 
-                coarse_steps=5000000, 
-                fine_steps=5000000,
-                coarse_output_period=5000,
-                fine_output_period=5000,
+                coarse_steps=1000000000, 
+                fine_steps=100,
+                coarse_output_period=1000000,
+                fine_output_period=100,#,
+            #    temperature=198,
                 directory='.'
             )
             shutil.move('out-3.pdb', f'{self.root}/mother.pdb')
@@ -388,27 +413,22 @@ class Manager:
 
         bases_needed = self.overall_length * (1/(100.0/self.percent_stapled))
         self.n_strands = int(bases_needed/self.length_stapled)
-        if self.n_strands == 1:
-            logger.error(
-                'n_strands is 1 (number of turns is zero)! it has to be at least 2 in order for the code to work.'
-                'Decrease -ds or increase -l'
-                )
+
+
+
+      #  if self.n_strands == 1:
+      #      logger.error(
+      #          'n_strands is 1 (number of turns is zero)! it has to be at least 2 in order for the code to work.'
+      #          'Decrease -ds or increase -l'
+      #          )
+
+
 
         #Create simulation output folder
         final_percentage = round(self.n_strands*self.length_stapled)/self.overall_length
         self.length = int(self.overall_length/self.n_strands)
 
         #adjust lengths between turns, overall_length and percentage if it doesnt end "6" (physical restriction) 
-    #    if repr(self.length)[-1] != "6":
-    #        list_of_length = list(repr(self.length))
-    #        list_of_length[-1] = "6"
-    #
-    #        string_of_length = ''.join(list_of_length)
-    #        self.length = int(string_of_length)
-    #
-    #        self.overall_length = self.length * self.n_strands
-    #        final_percentage = round(self.n_strands*self.length_stapled)/self.overall_length
-
         length_div = (self.length - 6.0) // 10.45
         self.length = int((length_div * 10.45) + 6.0)
         self.overall_length = self.length * self.n_strands
@@ -443,6 +463,195 @@ class Manager:
         logger.debug(f'\tConfiguration: {self.configuration}')
         logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
         print('\tdone with define_multiple_systems')
+
+    def define_random_system(self):
+        """
+        Create multiple folders for 5 different simulation systems
+        and convert terminal input to generate_system_all_random input
+        -> this function is used to randomly distribute blocks of ds staples along the total length of strand
+        """
+
+        print('In define_random_systems')
+
+        self.n_strands = 20
+        self.length = 400
+
+        if self.percent_stapled != 0:
+            final_percentage = 1/(100.0/self.percent_stapled)
+        else:
+            final_percentage = 0
+
+        #Create simulation output folder
+        self.file_path = "sim{}_l{}ds{}p{}".format(self.simulation_index,
+                                                   self.overall_length,
+                                                   self.length_stapled,
+                                                   int(final_percentage*100) )# % sim
+
+        try:
+            os.mkdir(self.file_path)
+        except FileExistsError:
+            print('{} is being deleted'.format(self.file_path))
+            shutil.rmtree(self.file_path)
+            os.mkdir(self.file_path)
+        if self.root:
+            self.root = self.file_path + '/' + self.root
+            Path(self.root).mkdir(exist_ok=True, parents=True)
+        
+        self.topology = f'{self.root}/oxdna.{self.name}.top'
+        self.configuration = f'{self.root}/oxdna.{self.name}.conf'
+        self.configuration_template = f'{self.root}/oxdna.{self.name}.{{}}.conf'
+
+        logger.debug('Initialised the following filenames:')
+        logger.debug(f'\tName         : {self.name}')
+        logger.debug(f'\tRoot         : {self.root}')
+        logger.debug(f'\tEnergy       : {self.energy}')
+        logger.debug(f'\tTopology     : {self.topology}')
+        logger.debug(f'\tConfiguration: {self.configuration}')
+        logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
+        print('\tdone with define_random_system')
+
+    def define_loop_system(self):
+        """
+        Create multiple folders for 5 different simulation systems
+        and convert terminal input to generate_system_all_random input
+        -> this function is used to randomly distribute blocks of ds staples along the total length of strand
+        """
+
+        print('In define_loop_systems')
+
+        self.n_strands = 20
+        self.length = 400 #100 #124
+
+        if self.percent_stapled != 0:
+            final_percentage = 1/(100.0/self.percent_stapled)
+        else:
+            final_percentage = 0
+
+        #Create simulation output folder
+        self.file_path = "sim{}_l{}ds{}p{}".format(self.simulation_index,
+                                                   self.overall_length,
+                                                   self.length_stapled,
+                                                   int(final_percentage*100) )# % sim
+
+        try:
+            os.mkdir(self.file_path)
+        except FileExistsError:
+            print('{} is being deleted'.format(self.file_path))
+            shutil.rmtree(self.file_path)
+            os.mkdir(self.file_path)
+        if self.root:
+            self.root = self.file_path + '/' + self.root
+            Path(self.root).mkdir(exist_ok=True, parents=True)
+        
+        self.topology = f'{self.root}/oxdna.{self.name}.top'
+        self.configuration = f'{self.root}/oxdna.{self.name}.conf'
+        self.configuration_template = f'{self.root}/oxdna.{self.name}.{{}}.conf'
+
+        logger.debug('Initialised the following filenames:')
+        logger.debug(f'\tName         : {self.name}')
+        logger.debug(f'\tRoot         : {self.root}')
+        logger.debug(f'\tEnergy       : {self.energy}')
+        logger.debug(f'\tTopology     : {self.topology}')
+        logger.debug(f'\tConfiguration: {self.configuration}')
+        logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
+        print('\tdone with define_random_system')
+
+
+    def define_random_system_single(self):
+        """
+        Create multiple folders for 5 different simulation systems
+        and convert terminal input to generate_system_all_random input
+        -> this function is used to randomly distribute blocks of ds staples along the total length of strand
+        THE STRAND DOES NOT HAVE TURNS (single line)
+        """
+
+        print('In define_random_systems')
+
+        self.n_strands = 1 
+        self.length = 8046 
+
+        if self.percent_stapled != 0:
+            final_percentage = 1/(100.0/self.percent_stapled)
+        else:
+            final_percentage = 0
+
+        #Create simulation output folder 
+        self.file_path = "sim{}_l{}ds{}p{}".format(self.simulation_index,
+                                                   self.overall_length,
+                                                   self.length_stapled,
+                                                   int(final_percentage*100))
+
+        try:
+            os.mkdir(self.file_path)
+        except FileExistsError:
+            print('{} is being deleted'.format(self.file_path))
+            shutil.rmtree(self.file_path)
+            os.mkdir(self.file_path)
+        if self.root:
+            self.root = self.file_path + '/' + self.root
+            Path(self.root).mkdir(exist_ok=True, parents=True)
+        
+        self.topology = f'{self.root}/oxdna.{self.name}.top'
+        self.configuration = f'{self.root}/oxdna.{self.name}.conf'
+        self.configuration_template = f'{self.root}/oxdna.{self.name}.{{}}.conf'
+
+        logger.debug('Initialised the following filenames:')
+        logger.debug(f'\tName         : {self.name}')
+        logger.debug(f'\tRoot         : {self.root}')
+        logger.debug(f'\tEnergy       : {self.energy}')
+        logger.debug(f'\tTopology     : {self.topology}')
+        logger.debug(f'\tConfiguration: {self.configuration}')
+        logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
+        print('\tdone with define_random_system')
+
+
+    def define_exact_system(self, binary_file):
+        """
+        create a system from a binary file containing exact position of ssDNA and dsDNA
+        """
+
+        print('In define_exact_system')
+
+        with open(binary_file, 'r') as binary_system:
+            DNA_system = binary_system.read()
+
+        self.n_strands = 20
+        self.length = 400
+        self.percent_stapled = DNA_system.count('1')/8064
+
+        if self.percent_stapled != 0:
+            final_percentage = self.percent_stapled
+        else:
+            final_percentage = 0
+         
+        #Create simulation output folder   
+        self.file_path = "sim{}_l{}ds{}p{}".format(self.simulation_index,
+                                                   self.overall_length,
+                                                   self.length_stapled,
+                                                   int(final_percentage*100) )
+        try:
+            os.mkdir(self.file_path)
+        except FileExistsError:
+            print('{} is being deleted'.format(self.file_path))
+            shutil.rmtree(self.file_path)
+            os.mkdir(self.file_path)
+        if self.root:
+            self.root = self.file_path + '/' + self.root
+            Path(self.root).mkdir(exist_ok=True, parents=True)
+        
+        self.topology = f'{self.root}/oxdna.{self.name}.top'
+        self.configuration = f'{self.root}/oxdna.{self.name}.conf'
+        self.configuration_template = f'{self.root}/oxdna.{self.name}.{{}}.conf'
+
+        logger.debug('Initialised the following filenames:')
+        logger.debug(f'\tName         : {self.name}')
+        logger.debug(f'\tRoot         : {self.root}')
+        logger.debug(f'\tEnergy       : {self.energy}')
+        logger.debug(f'\tTopology     : {self.topology}')
+        logger.debug(f'\tConfiguration: {self.configuration}')
+        logger.debug(f'\tTemplate     : {self.configuration_template.format("X")}')
+        print('\tdone with define_exact_system')
+
 
     def move_sim_files(self):
         # make sure that the folder exists
