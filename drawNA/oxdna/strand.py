@@ -60,7 +60,11 @@ class Strand:
         self.circular = False
 
     def __repr__(self):
-        return f"3>[{self.index}]>{self.sequence}>>5"
+        if self.circular:
+            string = f"3>[{self.index}:CIRCULAR]>{self.sequence}>>5"
+        else:
+            string = f"3>[{self.index}]>{self.sequence}>>5"
+        return string
 
     @property
     def sequence(self) -> str:
