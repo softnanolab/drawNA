@@ -26,7 +26,7 @@ class Node:
         self.position[3] = np.asarray(e3)
         
     def get_position(self):
-        return self.positon
+        return self.position
 
 # test_node = Node()
 # test_node.set_position([1,1,1], [0, -1, -1], [0, -2, -1])
@@ -69,8 +69,8 @@ class Beam(Connector):
         self.orientation = args[1].position[0] - args[0].position[0]
         self.length = np.linalg.norm(self.orientation)  
         
-    def get_vector(self):
-        return self.vector
+    def get_orientation(self):
+        return self.orientation
     def get_length(self):
         return self.length
     def get_angles(self):
@@ -89,17 +89,27 @@ class Beam(Connector):
         self.bend_mod = self.bend_mod/100
         self.twist_mod = self.twist_mod/100
         
-
 class Spring(Connector):
     def __init__(self, *args):
         super().__init__(*args)
-        self.extension = True
-    def torsional_spring(self, *args):
-        self.extension = False
         self.angle = super().find_angle(*args)
-        
-    
-            
+        self.bulge = False
+        self.rot_x = 1353 #pN nm rad-1
+        self.rot_y = 1353 #pN nm rad-1
+        self.rot_z = 135.3 #pN nm rad-1
+    def bulge(self):
+        self.bulge = True
+        self.rot_x = 13.53 #pN nm rad-1
+        self.rot_y = 0 #pN nm rad-1
+        self.rot_z = 13.53 #pN nm rad-1
+        return self
+    def calculate_energy(self):
+        rot_x_energy = 0.5 * self.rot_x * self.bend_angle_1 ** 2
+        rot_y_energy = 0.5 * self.rot_y * self.bend_angle_2 ** 2
+        rot_z_energy = 0.5 * self.rot_z * self.twist_angle ** 2
+        total_energy = rot_x_energy + rot_y_energy + rot_z_energy
+        return total_energy
+
 test_node_1 = Node()
 test_node_1.set_position([0, 0, 0], [0, -1, -1], [0, -2, -1], [1, 1, 1])
 test_node_2 = Node()
@@ -116,7 +126,7 @@ system = [test_node_1, test_node_2, test_node_3, test_beam_4,
           test_beam_1, test_beam_2, test_beam_3, test_node_4
           ]
 test_spring = Spring(test_node_1, test_node_2)
-test_system = [test_node_1, test_node_2, test_beam_1]
+
 
 def visualise_spring_system(system):    
     node_pos = []
@@ -142,17 +152,53 @@ def visualise_spring_system(system):
     plt.show()
 
 def generate_matrix(system):
+    node_counter = 0 
     #initialize an array of 6n x 6n zeros (make sure there's no double count)
-    matrix = np.zeros((len(system)*6,len(system)*6))
-    #if element is a beam then there will be stretch+bend+twist, cross terms -2 moduli
-    
-    #if element is a torsional spring then only twist
-    #if element is a nick there will be reduced stretch, bend and twist moduli
-    #single or double crossovers, open nicks and bulges modeled as torsional springs
     for element in system:
-        pass
+        if isinstance(element, Node):
+            node_counter += 1
+    matrix = np.zeros((6*node_counter,6*node_counter))
+    #if element is a beam then there will be stretch+bend+twist, cross terms -2 moduli
+    for element in system:
+        if isinstance(element, Beam):
+            # 6 DoF (3 translational 2 bend 1 twist) for beam element corresponding to node 1
+            matrix[6*element.node_index[0], 6*element.node_index[0]] = element.stretch_mod
+            matrix[6*element.node_index[0]+1, 6*element.node_index[0]+1] = element.stretch_mod
+            matrix[6*element.node_index[0]+2, 6*element.node_index[0]+2] = element.stretch_mod
+            matrix[6*element.node_index[0]+3, 6*element.node_index[0]+3] = element.bend_mod
+            matrix[6*element.node_index[0]+4, 6*element.node_index[0]+4] = element.bend_mod
+            matrix[6*element.node_index[0]+5, 6*element.node_index[0]+5] = element.twist_mod
+            # 6 DoF (3 translational 2 bend 1 twist) for beam element corresponding to node 2
+            matrix[6*element.node_index[1], 6*element.node_index[1]] = element.stretch_mod
+            matrix[6*element.node_index[1]+1, 6*element.node_index[1]+1] = element.stretch_mod
+            matrix[6*element.node_index[1]+2, 6*element.node_index[1]+2] = element.stretch_mod
+            matrix[6*element.node_index[1]+3, 6*element.node_index[1]+3] = element.bend_mod
+            matrix[6*element.node_index[1]+4, 6*element.node_index[1]+4] = element.bend_mod
+            matrix[6*element.node_index[1]+5, 6*element.node_index[1]+5] = element.twist_mod
+            # Cross terms for beam element
+            matrix[6*element.node_index[0], 6*element.node_index[1]] = -2*element.stretch_mod
+            matrix[6*element.node_index[0]+1, 6*element.node_index[1]+1] = -2*element.stretch_mod
+            matrix[6*element.node_index[0], 6*element.node_index[1]] = -2*element.stretch_mod
+            matrix[6*element.node_index[1], 6*element.node_index[0]] = -2*element.stretch_mod
+            matrix[6*element.node_index[1]+1, 6*element.node_index[0]+1] = -2*element.stretch_mod
+            matrix[6*element.node_index[1]+1, 6*element.node_index[0]+1] = -2*element.stretch_mod
+            
+    #if element is a torsional spring then there are 3 DoFs for rotations in x, y, z
+        elif isinstance(element, Spring):
+            # Node 1
+            matrix[6*element.node_index[0]+3, 6*element.node_index[0]+3] = element.rot_x
+            matrix[6*element.node_index[0]+4, 6*element.node_index[0]+4] = element.rot_y
+            matrix[6*element.node_index[0]+5, 6*element.node_index[0]+5] = element.rot_z
+            # Node 2
+            matrix[6*element.node_index[1]+3, 6*element.node_index[1]+3] = element.rot_x
+            matrix[6*element.node_index[1]+4, 6*element.node_index[1]+4] = element.rot_y
+            matrix[6*element.node_index[1]+5, 6*element.node_index[1]+5] = element.rot_z
+    '''if element is a nick there will be reduced stretch, bend and twist moduli
+    single or double crossovers, open nicks and bulges modeled as torsional springs'''
+    print(matrix)
+test_system = [test_node_1, test_node_2, test_beam_1] 
 generate_matrix(system)
-    
+
         
 
 
