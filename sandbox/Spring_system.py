@@ -206,17 +206,26 @@ generate_matrix(system)
 def visualise(matrix: np.ndarray, show: bool = False):
     """Taken from here: https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html
     """
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(9, 9))
     ax.imshow(matrix)
     # Loop over data dimensions and create text annotations.
     for i in range(len(matrix)):
         for j in range(len(matrix)):
             ax.text(j, i, matrix[i, j], ha="center", va="center", color="w", fontsize='xx-small')
+    # plot lines
+    n_elements = len(matrix) // 6
+    for i in range(n_elements - 1):
+        pos = (i+1) * 6 - 0.5
+        ax.plot([-0.5, len(matrix)-0.5], [pos, pos], 'k-')
+        ax.plot([pos, pos], [-0.5, len(matrix)-0.5], 'k-')
     if show:
         plt.show()
-        
+
+       
 def main():
-    visualise(generate_matrix(system), show=True)
+    matrix = generate_matrix(system)
+    #visualise_spring_system(system)
+    visualise(matrix, show=True)
     return
 
 if __name__ == '__main__':
