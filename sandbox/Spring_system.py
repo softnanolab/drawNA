@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import itertools
+
+import pandas as pd
 '''
 The Node class creates a node object that has a position accessed by self.get_position. The set_position method allows the user
 to input a numpy array with elements 0,1,2 representing the e0, e1 and e2 vectors. e0 is the position vector of the node, e1
@@ -195,11 +197,30 @@ def generate_matrix(system):
             matrix[6*element.node_index[1]+5, 6*element.node_index[1]+5] = element.rot_z
     '''if element is a nick there will be reduced stretch, bend and twist moduli
     single or double crossovers, open nicks and bulges modeled as torsional springs'''
-    print(matrix)
+    print(pd.DataFrame(matrix))
+    return matrix
 test_system = [test_node_1, test_node_2, test_beam_1] 
 generate_matrix(system)
 
+
+def visualise(matrix: np.ndarray, show: bool = False):
+    """Taken from here: https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html
+    """
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(matrix)
+    # Loop over data dimensions and create text annotations.
+    for i in range(len(matrix)):
+        for j in range(len(matrix)):
+            ax.text(j, i, matrix[i, j], ha="center", va="center", color="w", fontsize='xx-small')
+    if show:
+        plt.show()
         
+def main():
+    visualise(generate_matrix(system), show=True)
+    return
+
+if __name__ == '__main__':
+    main()
 
 
 
