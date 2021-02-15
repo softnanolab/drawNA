@@ -1,13 +1,9 @@
-# Oxdna Example
+# oxDNA Example
 
 ## Summary
 
-Enter the summary of the program here.
+An example of an oxDNA input script along with configuration and topology files
 
 ## Usage
 
-```python main.py```
-
-## Description
-
-Create an extended description of the program here.
+```oxDNA oxdna.in.main```
