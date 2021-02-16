@@ -149,10 +149,10 @@ class DNAEdge:
 
         if not sequence:
             # in future version, this will not be so straightforward
-            no_of_nucleotides_in_edge = self.nt_length
+            no_of_nucleotides_in_edge = self.number_of_nt
         else:
             no_of_nucleotides_in_edge = len(sequence)
-            if len(sequence) >= self.nt_length:
+            if len(sequence) >= self.number_of_nt:
                 print(
                     f"FYI: The Length of `sequence` is longer than the max no. of nucleotides "
                     f"that can be contained within this edge, i.e. {self.nt_length} nucleotides"
@@ -212,13 +212,24 @@ class DNAEdge:
 
     @property
     def length(self):
-        """The length of the edge in oxdna units (i think)"""
+        """
+        The length of the edge in geometry units
+        e.g. for nodes [0,0,0] and [5,0,0] length equals 5
+        """
         return np.linalg.norm(self.vector)
 
     @property
     def nt_length(self):
-        """The length of the edge in units of nucleotides"""
+        """The distance from the first nucleotide to last nucleotide in oxDNA units"""
         return int(self.length * 2.45)
+
+    @property
+    def number_of_nt(self):
+        """
+        The number of nucleotides in an edge object
+        e.g. for nodes [0,0,0] and [5,0,0] there would be 6 nucleotides
+        """
+        return int(np.linalg.norm(self.vector)+1)
 
     @property
     def vector(self) -> np.ndarray:

@@ -100,7 +100,7 @@ class LatticeRoute(Strand):
         """
         strands = []
         edge_0 = self.edges[0]
-        strand = generate_helix(n = edge_0.nt_length,
+        strand = generate_helix(n = edge_0.number_of_nt,
                                 start_position= edge_0.vertices[0],
                                 direction = edge_0.unit_vector,
                                 a1 = edge_0.perp_vector)[0]
@@ -120,7 +120,7 @@ class LatticeRoute(Strand):
             start = last_nuc.pos_back + (FENE_LENGTH - POS_BACK) * a1
 
             # generate strand above that's going in opposite direction
-            strand = generate_helix(n=self.edges[i].nt_length,
+            strand = generate_helix(n=self.edges[i].number_of_nt,
                                     start_position=start,
                                     direction=direction,
                                     a1=a1)[0]

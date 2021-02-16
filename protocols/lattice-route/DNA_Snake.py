@@ -12,11 +12,10 @@ def generate(polygon_vertices: np.ndarray, title: str = "polygon_name", DNAout: 
     print(f"{title}: Making polygon...")
     polygon = BoundaryPolygon(polygon_vertices)
     print(f"{title}: ...constructing scaffolding lattice...")
-    lattice = polygon.dna_snake(straightening_factor=5, start_side="left", grid_size = [0.34, 2.5])
+    lattice = polygon.dna_snake(straightening_factor=5, start_side="left", grid_size = [0.34, 2])
     print(f"{title}: ...calculating route.")
     route = lattice.route()
 
-    
     if PLOTout:
         print(f"{title}: Generating and saving lattice plot.")
         plot_list = [lattice.quantised_array, lattice.crossover_coords]
