@@ -5,7 +5,7 @@ with open("README.md", "r", encoding='utf-8') as f:
 
 setuptools.setup(
     name="drawNA",
-    version="1.0.1",
+    version="1.0.2",
     author="Shanil Panara & Debesh Mandal",
     description="Package for creating origami",
     long_description=long_description,
