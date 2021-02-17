@@ -506,7 +506,7 @@ class StapleBaseClass:
             staple = Strand(nucleotides=staple_nuc)
             staples.append(staple)
         
-        return StapleContainer(staple_strands = staples, scaffold_strand = self.scaffold_obj, staple_base_class = self)
+        return StapleContainer(staple_strands = staples, staple_base_class = self)
     
     @staticmethod
     def _order_staple_indices(arr: List[list]) -> list:
@@ -1273,15 +1273,16 @@ class StaplingAlgorithm2(StapleBaseClass):
 
 class StapleContainer:
     """ Stores staple and scaffold strand objects with the ability to modify them.
+
+    T0D0: add methods to modify staples -> could be added through subclassing
     """
     def __init__(self, 
                 staple_strands: List[Strand] = [], 
-                scaffold_strand: LatticeRoute = None, 
                 staple_base_class: StapleBaseClass = None):
 
         self._staples = staple_strands
-        self._scaffold = scaffold_strand
         self._baseclass = staple_base_class
+        self._scaffold = self._baseclass.route
     
     @property
     def staples(self) -> List[Strand]:
@@ -1313,41 +1314,8 @@ class StapleContainer:
     def add_staples(self, staple_strand: Strand):
         self._staples.append(staple_strand)
 
-    def plot_nodes(self, strand: Strand, ax, colour = 'r', width = 0.02, **kwargs):
-        """T0D0: Rewrite"""
-        nodes = np.array(strand.nodes)
-        #plt.grid(True)
-        ax.plot(nodes[:, 0], nodes[:, 1], 'bx', ms = 0.5)
-        ax.xaxis.set_major_locator(MultipleLocator(10))
-        ax.yaxis.set_major_locator(MultipleLocator(5))
-        ax.set_xlabel("No. of nucleotides")
-        ax.set_ylabel("No. of strands")
-        for edge in strand.edges:
-            ax.arrow(
-                edge.vertices[0][0], 
-                edge.vertices[0][1], 
-                edge.vector[0], 
-                edge.vector[1], 
-                width=width,
-                color = colour,
-                length_includes_head=True, **kwargs)
-    
-
-    def plot(self, fout: str = None):
-        """T0D0: Rewrite"""
-        fig, ax = plt.subplots()
-        route = self.scaffold
-        if route:
-            self.plot_nodes(strand = route, ax = ax, colour = 'k', width = 0.1, alpha = 0.)
-        for staple in self.staples:
-            colour = np.random.rand(3)
-            self.plot_nodes(strand = staple, ax = ax, colour = colour)
-        
-        plt.gca().set_aspect(5)
-        if fout:
-            plt.savefig(fout, dpi=500)
-
-        plt.show()
+    def plot(self):
+        self._baseclass.plot_lattice()
 
 
 ## Copied from protocols/lattice-route/DNA_snake.py
