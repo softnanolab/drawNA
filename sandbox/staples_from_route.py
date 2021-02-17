@@ -16,63 +16,10 @@ from typing import List
 
 import itertools as it
 
-# class StapleNode(DNANode):
-#     def __init__(self, position : np.ndarray):
-#         super().__init__(position)
+# from softnanotools.logger import Logger
 
-# class StapleEdge(DNAEdge):
-#     def __init__(self, vertex_1: StapleNode, vertex_2: StapleNode):
-#         super().__init__(vertex_1, vertex_2)
-
-# class StapleRoute(Strand):
-#     """T0D0 - Re-write this function"""
-#     def __init__(self, scaffold_rows: List[Strand], nodes: List[StapleNode] = []):
-
-#         self._nodes = nodes
-#         self._scaffold_rows = scaffold_rows
-#         self.update_strand_and_nucleotides()
-#         super().__init__(self._nucleotides)
-
-#     @property
-#     def nodes(self) -> List[StapleNode]:
-#         return self._nodes
-
-#     @property
-#     def edges(self):
-#         _edges = [StapleEdge(node, self.nodes[i+1]) for i, node in enumerate(self.nodes[:-1])]
-#         return _edges
-    
-#     @property
-#     def scaffold_rows(self) -> List[Strand]:
-#         """ Returns scaffold as it's constituent rows"""
-#         return self._scaffold_rows
-
-#     def update_strand_and_nucleotides(self, **kwargs):
-#         self._nucleotides = []
-#         for i, edge in enumerate(self.edges):
-#             if i % 2 == 1:
-#                 continue
-
-#             x1 = int(edge.vertices[0][0])
-#             x2 = int(edge.vertices[1][0])
-#             row = int(edge.vertices[0][1])
-#             if len(self.scaffold_rows) - 1 == row:
-#                 break
-#             nucleotides = []
-#             scaffold_row = self.scaffold_rows[row]
-            
-#             if x1 > x2:
-#                 x1, x2 = x2, x1
-#                 for nucleotide in scaffold_row.nucleotides[x1:x2+1]:
-#                     nucleotides.append(nucleotide.make_across())
-#                 # switch the order of the nucleotides back again
-#                 nucleotides = nucleotides[::-1]
-#             else:
-#                 for nucleotide in scaffold_row.nucleotides[::-1][x1:x2+1]:
-#                     nucleotides.append(nucleotide.make_across())
- 
-#             for nucleotide in nucleotides:
-#                 self._nucleotides.append(nucleotide)
+# logger = Logger("Staples_from_route")
+# logger.level = 20
 
 class StapleBaseClass:
     """
@@ -223,7 +170,7 @@ class StapleBaseClass:
     
     def make_lattice(self, threshold) -> np.ndarray:
         """
-        This generates a 3D numpy array (n x rows x 2) with 4 layers.
+        This generates a 3D numpy array (max no. of nucleotides x no. of scaffold rows x 4 layers)
 
         Firstly, there are 4 layers (it is a 3D array [width, height, depth=4])
             Where cells have the value 'None', means that no scaffold lives here
@@ -258,7 +205,7 @@ class StapleBaseClass:
 
         Layer D: Contains index information of the scaffold.
             
-            This is important for converting the staple array to a collection of staples
+            This is important for converting the staple array to a container of staples
         """
         # Create a correctly sized lattice filled with 0's
         lattice = np.zeros((self.n_rows,self.lattice_width))
@@ -454,25 +401,42 @@ class StapleBaseClass:
                 staple_node_T = [unstapled_nt_indices[0], row, 'T']
             
             staple = [staple_node_S, staple_node_T]
-            self.write_nodes_to_array([staple])
+            self.write_staples_to_array([staple])
 
-    def write_nodes_to_array(self, staples: list):
+    def write_staples_to_array(self, staples: List[List]):
+        """ Records the position of staple(s) nt and their start/stop points in the lattice
+
+        Parameters:
+            staples (list) - a list of staples, where each `staple` 
+                has an even number of `nodes` (list items)
+                
+                Each `node` is a 3 item list, in the form [<x index>,<row index>,<staple type>]
+                These specify a particular nucleotide on a particular row in the scaffold. The 
+                staple type is either S, C or T; standing for start, crossover or terminus, 
+                respectively. The start will be the 3p side and 5p side will be the terminus.
+        
+        Example input:
+            staple_1 = [[0,0,'S'],[10,0,'T']] # Single domain staple
+            staple_2 = [[10,1,'S'],[0,1,'C'],[0,2,'C'],[10,2,'T']] # Double domain staple
+            write_staples_to_array([staple_1, staple_2])
+
+        """
         assert type(staples) == list
         assert len(staples) <= 2
         staple_type_to_int = {'S': 10, 'C': 20, 'T':30}
         for staple in staples:
             # Ensure staple is valid
             if not any(x[0] is None for x in staple):
+
+                # assign type of staple ('S' 'T' or 'C') to layer C
                 for node in staple:
-                    # assign type of staple ('S' 'T' or 'C') to lattice C(2)
                     [x, row, staple_type] = node 
-                    # print(f"Node: {node}")
                     self.lattice[row, x, 2] = staple_type_to_int[staple_type]
                 
+                # assign staple_ID to lattice A(0) for all staple nt's
                 for i in range(0, len(staple),2):
                     node_1 = staple[i]
                     node_2 = staple[i+1]
-                    # assign staple_ID to lattice A(0) for all staple nt's
                     domain = np.sort([ node_1[0], node_2[0] ])
                     print(f"Writing staple #{self.staple_ID} with domain: {domain} on row {row}")
                     assert node_1[1] == node_2[1]
@@ -484,8 +448,8 @@ class StapleBaseClass:
             else:
                 pass
 
-    def staple_collection(self):
-        """ Converts `self.lattice` to staples using `self.scaffold_obj`
+    def staple_container(self):
+        """ Converts `self.lattice` to staples using `self.scaffold_obj` returning `StapleContainer` object
 
         Generates staples in the following steps:
         - Cycle through staples by staple_ID.
@@ -540,7 +504,7 @@ class StapleBaseClass:
             staple = Strand(nucleotides=staple_nuc)
             staples.append(staple)
         
-        return StapleCollection(staple_strands = staples, scaffold_strand = self.scaffold_obj, staple_base_class = self)
+        return StapleContainer(staple_strands = staples, scaffold_strand = self.scaffold_obj, staple_base_class = self)
     
     @staticmethod
     def _order_staple_indices(arr: List[list]) -> list:
@@ -633,7 +597,7 @@ class StaplingAlgorithm1(StapleBaseClass):
                         bound = boundary_node_left,
                         row_index = row1_idx,
                         direction = 'left_to_right',
-                        staple_direction = 'down')
+                        staple_direction = 'up')
 
                     boundary_node_right = row1['5p']
                     crossover_node_right = self.find_crossover(
@@ -680,7 +644,7 @@ class StaplingAlgorithm1(StapleBaseClass):
                 staple_nodes_right = [staple_node_1R, staple_node_2R]
 
                 # register staples in the array
-                self.write_nodes_to_array([staple_nodes_left, staple_nodes_right])
+                self.write_staples_to_array([staple_nodes_left, staple_nodes_right])
                 
             else:
                 ### ASSIGN ROW 1 AND ROW 2 DATAFRAMES
@@ -748,7 +712,7 @@ class StaplingAlgorithm1(StapleBaseClass):
 
                 staple_nodes_left = [staple_node_1L, staple_node_2L, staple_node_3L, staple_node_4L]
                 # register staples in the array
-                self.write_nodes_to_array([staple_nodes_left])
+                self.write_staples_to_array([staple_nodes_left])
                 
                 """ADD STAPLES TO THE RIGHT SIDE"""
 
@@ -812,7 +776,7 @@ class StaplingAlgorithm1(StapleBaseClass):
                 staple_nodes_right = [staple_node_1R, staple_node_2R, staple_node_3R, staple_node_4R]
 
                 # register staples in the array
-                self.write_nodes_to_array([staple_nodes_right])
+                self.write_staples_to_array([staple_nodes_right])
             
 
     def generate_inside_staples(self):
@@ -896,13 +860,15 @@ class StaplingAlgorithm1(StapleBaseClass):
                     # Find location of pre-existing crossover(s) [20: 'C']
                     # Find the one which is at the index < x_index
                     existing_crossover_indices = np.where(self.lattice[row_index, :, 2] == 20)[0]
-                    x_index  = existing_crossover_indices[existing_crossover_indices < x_index][-1] - 1
+                    x_index  = existing_crossover_indices[existing_crossover_indices <= x_index][-1] - 1
 
-
+            elif self.lattice[row_index, x_index, 2] == 20: # checking for a crossover already existing at this spot
+                x_index -= 1
+            
             # Ensure distance between bound and x_index is positive 
             if x_index - bound > 0:
                 return int(x_index)
-            # Staples with None will not be written in the `write_nodes_to_array` function
+            # Staples with None will not be written in the `write_staples_to_array` function
             else:
                 return None
         
@@ -929,21 +895,388 @@ class StaplingAlgorithm1(StapleBaseClass):
                     # Find location of pre-existing crossover(s) [20: 'C']
                     # Find the one which is at the index > x_index
                     existing_crossover_indices = np.where(self.lattice[row_index, :, 2] == 20)[0]
-                    x_index  = existing_crossover_indices[existing_crossover_indices > x_index][0] + 1
+                    x_index  = existing_crossover_indices[existing_crossover_indices >= x_index][0] + 1
 
+            elif self.lattice[row_index, x_index, 2] == 20: # checking for a crossover already existing at this spot
+                x_index += 1
 
             # Ensure distance between bound and x_index is negative 
             if x_index - bound < 0:
                 return int(x_index)
-            # Staples containing None will not be written in the `write_nodes_to_array` function
+            # Staples containing None will not be written in the `write_staples_to_array` function
             else:
                 return None
 
-class StapleCollection:
-    """ Probably need to edit this such that
-    it becomes easy to join staples on the same row together
-    not sure, how to implement that yet """
-    def __init__(self, staple_strands: List[Strand] = [], scaffold_strand: LatticeRoute = None, staple_base_class: StapleBaseClass = None):
+class StaplingAlgorithm2(StapleBaseClass):
+    """
+    This algorithm is specifically for rectangular shapes. i.e. the edges must be straight
+
+    It goes about putting 4 staples on each row. 2 from the left, 2 from the right (shifted up one row).
+
+    Steps:
+    1. Calculate approximate index of positions of 3 crossover points
+        for each row: L (1/4) M (1/2) R (3/4)
+    2. Do an oscillatory search around those points for the coordinates 
+        corresponding to a crossover in the scaffold
+    3. 
+    """
+    def __init__(self, scaffold, domain_size=14, crossover_threshold=0.956):
+        super().__init__(scaffold, crossover_threshold)
+        self.domain_size = domain_size
+        print("Generating side staples")
+        print(self.info_dataframe)
+        # self.generate_side_staples()
+    
+    def generate_side_staples(self):
+        """ Generates staple nodes for staples at the left and right edges of a scaffold
+
+        T0D0: Currently the workflow doesn't allow for the find_crossovers function
+        to check whether a single domained staple is being placed on a site where a
+        pre-existing staple sits...
+        
+        Yields:
+            Up to two sets of staple nodes for every two rows
+        """
+        df = self.info_dataframe
+
+        for row1_idx in range(0, self.n_rows, 2):
+            
+            # The number of rows is odd, the last row will be single domained
+            if row1_idx == (self.n_rows - 1):
+                single_domain = True
+                # print(f"single domain: {row1_idx, self.n_rows}")
+            else:
+                single_domain = False
+
+            """Make a single domained staple"""
+            if single_domain:
+                row1 = df.loc[row1_idx]
+
+                if row1['start side']=='left': # 3p -------> 5p
+                    boundary_node_left = row1['3p']
+                    crossover_node_left = self.find_crossover(
+                        bound = boundary_node_left,
+                        row_index = row1_idx,
+                        direction = 'left_to_right',
+                        staple_direction = 'up')
+
+                    boundary_node_right = row1['5p']
+                    crossover_node_right = self.find_crossover(
+                        bound = boundary_node_right,
+                        row_index = row1_idx,
+                        direction = 'right_to_left',
+                        staple_direction = 'up')
+
+                    ## Staple directions
+                    # Scaffold 3p --------------------> 5p
+                    # Staples  SN2<--SN1       SN2<--SN1
+                    staple_node_1L = [crossover_node_left, row1_idx, 'S']
+                    staple_node_2L = [boundary_node_left, row1_idx, 'T']
+
+                    staple_node_1R = [boundary_node_right, row1_idx, 'S']
+                    staple_node_2R = [crossover_node_right, row1_idx, 'T']
+
+                else: # 5p <------- 3ps
+                    boundary_node_left = row1['5p']
+                    crossover_node_left = self.find_crossover(
+                        bound = boundary_node_left,
+                        row_index = row1_idx,
+                        direction = 'left_to_right',
+                        staple_direction = 'down')
+
+                    boundary_node_right = row1['3p']
+                    crossover_node_right = self.find_crossover(
+                        bound = boundary_node_right,
+                        row_index = row1_idx,
+                        direction = 'right_to_left',
+                        staple_direction = 'down')
+
+                    ## Staple directions
+                    # Scaffold 5p <-------------------- 3p
+                    # Staples  SN1-->SN2       SN1-->SN2
+                    staple_node_1L = [boundary_node_left, row1_idx, 'S']
+                    staple_node_2L = [crossover_node_left, row1_idx, 'T']
+
+                    staple_node_1R = [crossover_node_right, row1_idx, 'S']
+                    staple_node_2R = [boundary_node_right, row1_idx, 'T']
+                
+                # Assign staples
+                staple_nodes_left = [staple_node_1L, staple_node_2L]
+                staple_nodes_right = [staple_node_1R, staple_node_2R]
+
+                # register staples in the array
+                self.write_staples_to_array([staple_nodes_left, staple_nodes_right])
+                
+            else:
+                ### ASSIGN ROW 1 AND ROW 2 DATAFRAMES
+                row2_idx = row1_idx + 1
+                row1 = df.loc[row1_idx]
+                row2 = df.loc[row2_idx]
+
+                ### FINDING CROSSOVER POSITIONS OF THE STAPLE
+                """ ADD STAPLES TO LEFT SIDE"""
+
+                # Row 1: 3p ---------------------> 5p
+                if row1['start side'] == 'left':
+                    boundary_node_row_1_L = row1['3p']
+                    boundary_node_row_2_L = row2['5p']
+
+                    #  Left edge is aligned both row1 and row2 have the same left bound
+                    #  Or Left edge is MISaligned: row2 bound is further left than row1
+                    if (row1['3p'] == row2['5p']) or (row1['3p'] > row2['5p']):
+                        crossover_node_left = self.find_crossover(
+                            bound = boundary_node_row_1_L,
+                            row_index = row1_idx, 
+                            direction = 'left_to_right',
+                            staple_direction = 'up')
+                        
+                    # Left edge is MISaligned: row1 is further left than row2
+                    elif row2['5p'] > row1['3p']:
+                        crossover_node_left = self.find_crossover(
+                            bound = boundary_node_row_2_L,
+                            row_index = row2_idx, 
+                            direction = 'left_to_right',
+                            staple_direction = 'down')
+                    
+                    ## Schematic of staple 
+                    # Row 2   (3p)  SN1----->SN2 
+                    # Row 1   (5p)  SN4<-----SN3
+                    # Note: crossover between SN2 and SN3
+                    staple_node_1L = [boundary_node_row_2_L, row2_idx, 'S']
+                    staple_node_2L = [crossover_node_left, row2_idx, 'C']
+                    staple_node_3L = [crossover_node_left, row1_idx, 'C']
+                    staple_node_4L = [boundary_node_row_1_L, row1_idx, 'T'] 
+
+                # Row 1: 5p <--------------------- 3p
+                else:
+                    boundary_node_row_1_L = row1['5p']
+                    boundary_node_row_2_L = row2['3p']
+
+                    # left edge, by definition, must be aligned
+                    if row1['5p'] == row2['3p']:
+                        crossover_node_left = self.find_crossover(
+                            bound = boundary_node_row_1_L,
+                            row_index = row1_idx, 
+                            direction = 'left_to_right',
+                            staple_direction = 'up')
+                    else:
+                        print("This should not be possible")
+
+                    ## Schematic of staple 
+                    # Row 2   (5p)  SN4<-----SN3 
+                    # Row 1   (3p)  SN1----->SN2
+                    # Note: crossover between SN2 and SN3
+                    staple_node_1L = [boundary_node_row_1_L, row1_idx, 'S'] 
+                    staple_node_2L = [crossover_node_left, row1_idx, 'C']
+                    staple_node_3L = [crossover_node_left, row2_idx, 'C']
+                    staple_node_4L = [boundary_node_row_2_L, row2_idx, 'T'] 
+
+                staple_nodes_left = [staple_node_1L, staple_node_2L, staple_node_3L, staple_node_4L]
+                # register staples in the array
+                self.write_staples_to_array([staple_nodes_left])
+                
+                """ADD STAPLES TO THE RIGHT SIDE"""
+
+                # Row 1: 5p <---------------------- 3p
+                if row1['start side'] == 'right':
+                    boundary_node_row_1_R = row1['5p']
+                    boundary_node_row_2_R = row2['3p']
+
+                    # Row 2: 3p ------------> 5p             3p ------------> 5p
+                    # Row 1: 5p <------------ 3p     OR      5p <------ 3p
+                    if (row1['3p'] == row2['5p']) or (row1['3p'] < row2['5p']):
+                        crossover_node_right = self.find_crossover(
+                            bound = boundary_node_row_1_R,
+                            row_index = row1_idx, 
+                            direction = 'right_to_left',
+                            staple_direction = 'up')
+                        
+                    # Row 2: 3p ------> 5p
+                    # Row 1: 5p <----------- 3p
+                    elif row2['5p'] < row1['3p']:
+                        crossover_node_right = self.find_crossover(
+                            bound = boundary_node_row_2_R,
+                            row_index = row2_idx, 
+                            direction = 'right_to_left',
+                            staple_direction = 'down')
+                    
+                    ## Schematic of staple 
+                    # Row 2   (3p)  SN2<-----SN1 
+                    # Row 1   (5p)  SN3----->SN4
+                    # Note: crossover between SN2 and SN3
+                    staple_node_1R = [boundary_node_row_2_R, row2_idx, 'S']
+                    staple_node_2R = [crossover_node_right, row2_idx, 'C']
+                    staple_node_3R = [crossover_node_right, row1_idx, 'C']
+                    staple_node_4R = [boundary_node_row_1_R, row1_idx, 'T'] 
+
+                # Row 1: 3p ---------------------> 5p
+                else:
+                    boundary_node_row_1_R = row1['5p']
+                    boundary_node_row_2_R = row2['3p']
+
+                    # Row 2: 3p <------------ 3p  
+                    # Row 1: 5p ------------> 5p   i.e. right side is a crossover
+                    if row1['5p'] == row2['3p']:
+                        crossover_node_right = self.find_crossover(
+                            bound = boundary_node_row_1_R,
+                            row_index = row1_idx, 
+                            direction = 'right_to_left',
+                            staple_direction = 'up')
+                    else:
+                        print("This should not be possible")
+
+                    ## Schematic of staple 
+                    # Row 2   (5p)  SN3----->SN4 
+                    # Row 1   (3p)  SN2------SN1
+                    # Note: crossover between SN2 and SN3
+                    staple_node_1R = [boundary_node_row_1_R, row1_idx, 'S'] 
+                    staple_node_2R = [crossover_node_right, row1_idx, 'C']
+                    staple_node_3R = [crossover_node_right, row2_idx, 'C']
+                    staple_node_4R = [boundary_node_row_2_R, row2_idx, 'T'] 
+
+                staple_nodes_right = [staple_node_1R, staple_node_2R, staple_node_3R, staple_node_4R]
+
+                # register staples in the array
+                self.write_staples_to_array([staple_nodes_right])
+            
+
+    def generate_inside_staples(self):
+        # cycle through the rows in chunks (number of domains)
+        pass
+
+    def find_crossover(self,
+            bound: int,
+            row_index: int,
+            direction: str,
+            staple_direction: str
+            ) -> int:
+        """Returns x index for the crossover point of a staple.
+
+        T0D0: add a self.staple_exists() function and call it before returning value
+
+        Args:
+            bound (int) - the start or end x-index of a staple
+
+            row_index (int) - which row of the scaffold we are using
+                to find a crossover point
+
+            direction (str) - from which side, relative to the given `bound`,
+                a crossover should be found
+                i.e. "left_to_right" or "right_to_left"
+            
+            staple_direction (str) - which direction the staple will
+                crossover to the next helix
+                i.e. 'up' or 'down'
+
+        Returns:
+            The x-index of a crossover position for a staple.
+
+            This is specifically chosen to the locations where
+            the nucleotide is at a peak position from the central
+            helical axes.
+
+            The site types in layer B of the lattice are:
+                0: no crossover
+                1: upwards pointing scaffold crossover
+                -1: downwards pointing scaffold crossover
+
+            Where the crossover required is up, the scaffold must
+            have a peak going down. This corresponds to a value of -1
+            in `layerB` of the `lattice`.
+
+        """
+
+        assert direction in ['left_to_right', 'right_to_left']
+        assert staple_direction in ['up', 'down']
+        
+        # If staple crossover is intended to go up, scaffold crossover must be going down (-1)
+        crossover_type = {'up' : 1, 'down' : -1}
+
+        staple_direction = crossover_type[staple_direction]
+        target_scaffold_direction = -staple_direction
+
+        # Recall: layerB of the lattice is the one denoting positions of crossovers
+
+        ## FIND INDEX
+        if direction == 'left_to_right':
+            x_index = bound + self.domain_size
+
+            # Site type: 0 - no crossover, -1/1 - crossover position
+            scaf_site_direction = self.lattice[row_index, x_index, 1]
+
+            if scaf_site_direction != target_scaffold_direction:
+                
+                # Finding index of all the sites on the row, where the staple
+                # will have the correct direction (opposite to scaffold direction)
+                # THen we find the next suitable crossover point (moving right in our search)
+                crossover_indices = np.where(self.lattice[row_index, :, 1] == target_scaffold_direction)[0]
+                x_index  = crossover_indices[crossover_indices > x_index][0]
+                
+                scaf_site_direction = self.lattice[row_index, x_index, 1]
+                assert scaf_site_direction == -staple_direction, "Searching for staple didn't work"
+
+                # Domain size is set to be one nt smaller than the location where there is a crossover
+                if self.lattice[row_index, x_index, 0] != 0:
+
+                    # Find location of pre-existing crossover(s) [20: 'C']
+                    # Find the one which is at the index < x_index
+                    existing_crossover_indices = np.where(self.lattice[row_index, :, 2] == 20)[0]
+                    x_index  = existing_crossover_indices[existing_crossover_indices <= x_index][-1] - 1
+
+            elif self.lattice[row_index, x_index, 2] == 20: # checking for a crossover already existing at this spot
+                x_index -= 1
+            
+            # Ensure distance between bound and x_index is positive 
+            if x_index - bound > 0:
+                return int(x_index)
+            # Staples with None will not be written in the `write_staples_to_array` function
+            else:
+                return None
+        
+        else: #direction is right to left
+        
+            x_index = bound - self.domain_size
+
+            scaf_site_direction = self.lattice[row_index, x_index, 1]
+
+            if scaf_site_direction != target_scaffold_direction:
+                
+                # Finding index of all the sites on the row where the staple
+                # will have the correct direction (opposite to scaffold direction)
+                # THen we find the next suitable crossover point (moving left in our search)
+                crossover_indices = np.where(self.lattice[row_index, :, 1] == target_scaffold_direction)[0]
+                x_index  = crossover_indices[crossover_indices < x_index][-1]
+
+                scaf_site_direction = self.lattice[row_index, x_index, 1]
+                assert scaf_site_direction == -staple_direction, "Searching for staple didn't work"
+
+                # Domain size is set to be one nt smaller than the location where there is a crossover
+                if self.lattice[row_index, x_index, 0] != 0:
+                    
+                    # Find location of pre-existing crossover(s) [20: 'C']
+                    # Find the one which is at the index > x_index
+                    existing_crossover_indices = np.where(self.lattice[row_index, :, 2] == 20)[0]
+                    x_index  = existing_crossover_indices[existing_crossover_indices >= x_index][0] + 1
+
+            elif self.lattice[row_index, x_index, 2] == 20: # checking for a crossover already existing at this spot
+                x_index += 1
+
+            # Ensure distance between bound and x_index is negative 
+            if x_index - bound < 0:
+                return int(x_index)
+            # Staples containing None will not be written in the `write_staples_to_array` function
+            else:
+                return None
+
+
+class StapleContainer:
+    """ Stores staple and scaffold strand objects with the ability to modify them.
+    """
+    def __init__(self, 
+                staple_strands: List[Strand] = [], 
+                scaffold_strand: LatticeRoute = None, 
+                staple_base_class: StapleBaseClass = None):
+
         self._staples = staple_strands
         self._scaffold = scaffold_strand
         self._baseclass = staple_base_class
@@ -955,7 +1288,7 @@ class StapleCollection:
 
     @property
     def scaffold(self) -> LatticeRoute:
-        """The Scaffold `Strand` object 
+        """The Scaffold `Strand` object as a `LatticeRoute` object
         
             Note: `LatticeRoute` is a subclass of `Strand`
         """
@@ -970,6 +1303,7 @@ class StapleCollection:
         _system.add_strands(self.staples)
         _system.add_strand(self.scaffold)
         return _system
+    
     @property
     def n_staples(self) -> int:
         return len(self._staples)
@@ -1016,50 +1350,89 @@ class StapleCollection:
 
 ## Copied from protocols/lattice-route/DNA_snake.py
 def generate(polygon_vertices: np.ndarray, title: str = "Generate()") -> LatticeRoute:
-    print(f"{title}: Making polygon...")
+    print('Running Generate Function')
+    print(f'Creating polygon from {len(polygon_vertices)} vertices')
     polygon = BoundaryPolygon(polygon_vertices)
-    print(f"{title}: ...constructing scaffolding lattice...")
+    print("Constructing scaffolding lattice")
+    # print(f"{title}: ...constructing scaffolding lattice...")
     lattice = polygon.dna_snake(straightening_factor=5, start_side="left", grid_size = [0.34, 2])
-    print(f"{title}: ...calculating route.")
+    # print(f"{title}: ...calculating route.")
+    print("Calculating Route")
     route = lattice.route()
+    print("Plotting Route")
+    route.plot()
     return route
 
 ## Protocol functions
-def staple_and_write_to_file(route: LatticeRoute, name_of_file: str, domain_size = 15) -> (System, StapleCollection):
-    print("StaplingAlgorithm(): Generating staples...")
+def staple_1_and_write_to_file(route: LatticeRoute, name_of_file: str, domain_size = 15):
+    print("Class StaplingAlgorithm1: Generating side staples")
     staple_1 = StaplingAlgorithm1(route, domain_size = domain_size)
-    staple_1.fill_lattice_with_single_domains()
-    print("StaplingAlgorithm(): Adding staples to a collection...")
-    collection_1 = staple_1.staple_collection()
+    # staple_1.fill_lattice_with_single_domains()
+
+    print("StaplingAlgorithm(): Adding staples to a container...")
+    container_1 = staple_1.staple_container()
+    
     print("StaplingAlgorithm(): Adding staples to an oxDNA system...")
-    system_1 = collection_1.system()
+    system_1 = container_1.system()
+    
     print("StaplingAlgorithm(): Writing `.top` and `.conf` files")
     system_1.write_oxDNA(prefix = name_of_file)
-    return system_1, collection_1
+    return system_1, container_1
 
-def plot_staples(staples: StapleCollection):
-    staples = staples.base_class
+def plot_staples(staples: StapleContainer):
+    if type(staples) == StapleContainer:
+        staples = staples.base_class
 
     print("Plotting Staples with start, crossover and terminal points labelled")
     staples.plot_lattice(layer=0, show_staple_nodes=True)
     print("Plotting Staples with scaffold crossover points labelled")
     staples.plot_lattice(layer=0, show_staple_nodes=False)
 
-if __name__ == "__main__":
+def main():
     hourglass = np.array([[0.,0.,0.],[4,6.,0.],[0,12,0],[12,12,0],[8,6.,0.],[12,0.,0.]])
     stacked_I = np.array([
     [0.,0.,0.],[3.,0.,0.],[3.,1.,0.],[2.,1.,0.], [2.,2.,0.],[3.,2.,0.],
     [3.,3.,0.],[2.,3.,0.],[2.,4.,0.],[3.,4.,0.],[3.,5.,0.],[0.,5.,0.],[0.,4.,0.],[1.,4.,0.],
     [1.,3.,0.],[0.,3.,0.], [0.,2.,0.],[1.,2.,0.],[1.,1.,0.],[0.,1.,0.]
     ])
-    square = np.array([[0,0,0],[10,0,0],[10,10,0],[0,10,0]])
+    square = np.array([[0,0,0],[10,0,0],[10,9,0],[0,9,0]])
     triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
-    
-    route = generate(stacked_I*17)
-    system, collection = staple_and_write_to_file(route, "stacked_I")
-    plot_staples(collection)
 
+    route = generate(square*2)
+    staple, container = staple_and_write_to_file(route, "square25", domain_size=25)
+    plot_staples(container)
+
+if __name__ == "__main__":
+    main()
+    
+    # route = generate(stacked_I*17)
+    # system, container = staple_and_write_to_file(route, "stacked_I")
+    # plot_staples(container)
+
+    # route = generate(hourglass*10)
+    # system, container = staple_and_write_to_file(route, "hourglass")
+    # plot_staples(container)
+
+    # route = generate(square*10)
+    # system, container = staple_and_write_to_file(route, "square")
+    # plot_staples(container)
+
+    # route = generate(trapREV*17)
+    # system, container = staple_and_write_to_file(route, "trapezium")
+    # plot_staples(container)
+
+    # route = generate(square*2)
+
+    # container = staple_and_write_to_file(route, "square25", domain_size=25)
+    # plot_staples(container)
+    # container = staple_and_write_to_file(route, "square15", domain_size=15)
+    # plot_staples(container)
+    # container = staple_and_write_to_file(route, "square35", domain_size=35)
+    # plot_staples(container)
+    # container = staple_and_write_to_file(route, "square45", domain_size=45)
+    
+    # plot_staples(container)
     # half_turn_indices   = [4, 15, 25, 36, 46, 56, 67, 77, 88, 98, 109]
     # staple_lengths      = [9, 31, 51, 73]
 
@@ -1143,15 +1516,15 @@ if __name__ == "__main__":
     # system = System(np.array([50,50,50]))
     # system.add_strands(scaf)
     # system.write_oxDNA("scaffold")
-    # collection = side_staples(route)
-    # system = route.system(collection.staples)
+    # container = side_staples(route)
+    # system = route.system(container.staples)
     # system.write_oxDNA("lol") 
 
 
 
     ### Final Workflow should be something like
-    # collections = system.generate_staples(options) # here system should only contain a single scaffold strand
-        # - collections consists of 
+    # containers = system.generate_staples(options) # here system should only contain a single scaffold strand
+        # - containers consists of 
 
 
 # import numpy as np
@@ -1162,7 +1535,7 @@ if __name__ == "__main__":
 # staple_type_to_int = {'S': 10, 'C': 20, 'T':30}
 # staple_ID = 2
 
-# def write_nodes_to_array(staples: list, lattice, staple_ID = 1):
+# def write_staples_to_array(staples: list, lattice, staple_ID = 1):
 #     assert type(staples) == list
 #     assert len(staples) <= 2
 #     for staple in staples:
@@ -1190,7 +1563,7 @@ if __name__ == "__main__":
 # grid = np.zeros((5,20,3))
 # plt.imshow(grid[:,:,0])
 # plt.show()
-# grid = write_nodes_to_array([staple_left, staple_right], grid)
+# grid = write_staples_to_array([staple_left, staple_right], grid)
 # plt.imshow(grid[:,:,0])
 # plt.gca().set_title("Purple=unpaired, otherwise, stapled")
 # plt.show()
