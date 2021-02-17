@@ -2,15 +2,13 @@ from drawNA.lattice import LatticeRoute, LatticeEdge, LatticeNode
 from drawNA.oxdna import Strand, System
 from drawNA.tools import DNANode, DNAEdge
 from drawNA.lattice.utils import find_crossover_locations
+from drawNA.polygons import BoundaryPolygon
+
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 from matplotlib.ticker import MultipleLocator
 import pandas as pd
-from typing import List
-import plotly.express as px
-from drawNA.polygons import BoundaryPolygon
-import math
+
 from copy import deepcopy
 from typing import List
 
@@ -27,6 +25,7 @@ class StapleBaseClass:
     and process this into information which we can use to design staples across the structure.
     """
     def __init__(self, scaffold: LatticeRoute, crossover_threshold: float):
+        print(f"StapleBaseClass: Initialising StapleBaseClass object {self}")
         self.route = scaffold
         self.scaffold_obj, self.scaffold_rows = self.route.get_strand()
         self.n_rows = len(self.scaffold_rows)
@@ -448,7 +447,7 @@ class StapleBaseClass:
             else:
                 pass
 
-    def staple_container(self):
+    def generate_container(self):
         """ Converts `self.lattice` to staples using `self.scaffold_obj` returning `StapleContainer` object
 
         Generates staples in the following steps:
@@ -459,6 +458,9 @@ class StapleBaseClass:
         - Order indices based on row
         - Order indices such that S->C and C->T
         - Order pairs of indices such that S->C...C->T
+        - Retrieves corresponding scaffold indices between the staple nodes (i.e. S, C, T)
+        - Generates staple and adds to list
+        - Converts list of staples to a container
         """
         layer0 = self.lattice[:,:,0] # Staple_IDs
         layer2 = self.lattice[:,:,2] # Special nucleotide: Start (10), Crossovers (20) or End (30). Otherwise (0).
@@ -563,8 +565,10 @@ class StaplingAlgorithm1(StapleBaseClass):
     def __init__(self, scaffold, domain_size=14, crossover_threshold=0.956):
         super().__init__(scaffold, crossover_threshold)
         self.domain_size = domain_size
-        print("Generating side staples")
+        print(f"StapleAlgorithm1: Generating side staples {self}")
         self.generate_side_staples()
+        print(f"StapleAlgorithm1: Generating inside staples of single domain only {self}")
+        self.generate_inside_staples()
     
     def generate_side_staples(self):
         """ Generates staple nodes for staples at the left and right edges of a scaffold
@@ -780,8 +784,8 @@ class StaplingAlgorithm1(StapleBaseClass):
             
 
     def generate_inside_staples(self):
-        # cycle through the rows in chunks (number of domains)
-        pass
+        """ Generates single domain staples for all remaining unpaired nt's """
+        self.fill_lattice_with_single_domains()
 
     def find_crossover(self,
             bound: int,
@@ -1140,9 +1144,7 @@ class StaplingAlgorithm2(StapleBaseClass):
                 self.write_staples_to_array([staple_nodes_right])
             
 
-    def generate_inside_staples(self):
-        # cycle through the rows in chunks (number of domains)
-        pass
+
 
     def find_crossover(self,
             bound: int,
@@ -1355,7 +1357,7 @@ def generate(polygon_vertices: np.ndarray, title: str = "Generate()") -> Lattice
     polygon = BoundaryPolygon(polygon_vertices)
     print("Constructing scaffolding lattice")
     # print(f"{title}: ...constructing scaffolding lattice...")
-    lattice = polygon.dna_snake(straightening_factor=5, start_side="left", grid_size = [0.34, 2])
+    lattice = polygon.dna_snake(start_side="left", grid_size = [0.34, 2])
     # print(f"{title}: ...calculating route.")
     print("Calculating Route")
     route = lattice.route()
@@ -1369,13 +1371,13 @@ def staple_1_and_write_to_file(route: LatticeRoute, name_of_file: str, domain_si
     staple_1 = StaplingAlgorithm1(route, domain_size = domain_size)
     # staple_1.fill_lattice_with_single_domains()
 
-    print("StaplingAlgorithm(): Adding staples to a container...")
-    container_1 = staple_1.staple_container()
+    print("staple_1_and_write_to_file(): Adding staples to a container...")
+    container_1 = staple_1.generate_container()
     
-    print("StaplingAlgorithm(): Adding staples to an oxDNA system...")
+    print("staple_1_and_write_to_file(): Adding staples to an oxDNA system...")
     system_1 = container_1.system()
     
-    print("StaplingAlgorithm(): Writing `.top` and `.conf` files")
+    print("staple_1_and_write_to_file(): Writing `.top` and `.conf` files")
     system_1.write_oxDNA(prefix = name_of_file)
     return system_1, container_1
 
@@ -1400,7 +1402,7 @@ def main():
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
 
     route = generate(square*2)
-    staple, container = staple_and_write_to_file(route, "square25", domain_size=25)
+    staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
     plot_staples(container)
 
 if __name__ == "__main__":
