@@ -92,19 +92,35 @@ class Beam(Connector):
         self.twist_mod = self.twist_mod/100
         
 class Spring(Connector):
-    def __init__(self, *args):
+    def __init__(self, *args, bulge=False):
         super().__init__(*args)
         self.angle = super().find_angle(*args)
-        self.bulge = False
+        
         self.rot_x = 1353 #pN nm rad-1
         self.rot_y = 1353 #pN nm rad-1
         self.rot_z = 135.3 #pN nm rad-1
+
+        self._bulge = False
+
+        self.bulge = bulge
+
+    @property
     def bulge(self):
-        self.bulge = True
-        self.rot_x = 13.53 #pN nm rad-1
-        self.rot_y = 0 #pN nm rad-1
-        self.rot_z = 13.53 #pN nm rad-1
-        return self
+        return self._bulge
+
+    @bulge.setter
+    def bulge(self, value: bool):
+        assert isinstance(value, bool)
+        self._bulge = value
+        if value:
+            self.rot_x = 13.53 #pN nm rad-1
+            self.rot_y = 0 #pN nm rad-1
+            self.rot_z = 13.53 #pN nm rad-1
+        else:
+            self.rot_x = 1353 #pN nm rad-1
+            self.rot_y = 1353 #pN nm rad-1
+            self.rot_z = 135.3 #pN nm rad-1
+            
     def calculate_energy(self):
         rot_x_energy = 0.5 * self.rot_x * self.bend_angle_1 ** 2
         rot_y_energy = 0.5 * self.rot_y * self.bend_angle_2 ** 2
