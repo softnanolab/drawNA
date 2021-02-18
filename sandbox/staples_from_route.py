@@ -14,10 +14,10 @@ from typing import List
 
 import itertools as it
 
-# from softnanotools.logger import Logger
+from softnanotools.logger import Logger
 
-# logger = Logger("Staples_from_route")
-# logger.level = 20
+logger = Logger("Staples_from_route")
+logger.level = 10
 
 class StapleBaseClass:
     """
@@ -39,7 +39,7 @@ class StapleBaseClass:
         self.lattice_width = int(self.bounds.max()+1) # +1 to account for counting starting at 0
         self.lattice = self.make_lattice(threshold = crossover_threshold)
         self.staple_ID = 1
-        print(f"StapleBaseClass generated.")
+        print(f"StapleBaseClass generated.\n-----")
     
     @property
     def row_size(self) -> List[int]:
@@ -932,29 +932,36 @@ class StaplingAlgorithm2(StapleBaseClass):
     """
     def __init__(self, scaffold, crossover_threshold=0.956):
         super().__init__(scaffold, crossover_threshold)
-        print(self.info_dataframe)
         self.verify_route_is_applicable()
 
-        self.L, self.Q1, self.Q2, self.Q3, self.R = 0
+        self.L = self.Q1 = self.Q2 = self.Q3 = self.R = 0
         self.find_approx_crossover_indices()
         self.find_closest_crossover_indices()
         
         self.generate_staples()
+        print(self.info_dataframe)
 
-    def verify_route_is_applicable():
+    def verify_route_is_applicable(self):
         """Checks to see left and right edges of scaffold are aligned"""
-        pass
+        _3p_idx = self.info_dataframe['3p']
+        _5p_idx = self.info_dataframe['5p']
+        min, max = _3p_idx[0], _5p_idx[0]
+        all_idx = list(_3p_idx) + list(_5p_idx)
+        print("StapleAlgorithm2: Verifying inputted route is supported")
+        if not all(idx == min or idx == max for idx in all_idx):
+            logger.kill(f'Scaffold route is unsupported with this algorithm, edges must be aligned')
 
-
-    def find_approx_crossover_indices():
+    def find_approx_crossover_indices(self):
         """ Calculates approximate indices of 5 potential crossover points """
         pass
 
-    def find_closest_crossover_indices():
+    def find_closest_crossover_indices(self):
         """ Ensures 5 potential crossover points all occur where  """
         pass
     
-    
+    def generate_staples(self):
+        """ Generates staples in two cycles: 1) left half, 2) right half """
+        pass
 
 class StapleContainer:
     """ Stores staple and scaffold strand objects with the ability to modify them.
@@ -1055,12 +1062,13 @@ def main():
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
 
     route = generate(square*2)
-    staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
-    plot_staples(container)
-    return route
+    # staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
+    # plot_staples(container)
+    staple_2 = StaplingAlgorithm2(route)
+    return staple_2
 
 if __name__ == "__main__":
-    route = main()
+    staple_2 = main()
     
     # route = generate(stacked_I*17)
     # system, container = staple_and_write_to_file(route, "stacked_I")
