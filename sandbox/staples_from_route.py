@@ -1,8 +1,5 @@
-from numpy.core.numeric import cross
-from drawNA.lattice import LatticeRoute, LatticeEdge, LatticeNode
+from drawNA.lattice import LatticeRoute
 from drawNA.oxdna import Strand, System
-from drawNA.tools import DNANode, DNAEdge
-from drawNA.lattice.utils import find_crossover_locations
 from drawNA.polygons import BoundaryPolygon
 
 import numpy as np
@@ -337,13 +334,15 @@ class StapleBaseClass:
     def plot_lattice(self,layer = 0, aspect = 6, show_staple_nodes = False):
         lattice_2D = self.lattice[:,:, layer]
         fig, ax = plt.subplots(figsize=(15,15))
-        # fig.set_facecolor("grey")
+        # Set Colours
         vals = np.linspace(0,1,256)
         np.random.shuffle(vals)
-        cmap = plt.cm.colors.ListedColormap(plt.cm.viridis(vals))
+        cmap = plt.cm.colors.ListedColormap(plt.cm.gnuplot(vals))
         cmap.set_bad(color='black')
+        # Create plot
         plt.imshow(lattice_2D, cmap=cmap,aspect = 2)
 
+        # Add text overlay
         if show_staple_nodes == False:
             lattice_crossovers = self.lattice[:,:, 1]
             for i in range(lattice_crossovers.shape[0]):
@@ -369,6 +368,7 @@ class StapleBaseClass:
                         text = ""
                     ax.text(j, i, text,ha="center", va="center", color="w")
 
+        # Make it look a little prettier
         plt.gca().set_aspect(aspect)
         plt.gca().invert_yaxis()
         ax.set_title("Crossover positions")
@@ -1164,7 +1164,7 @@ def main():
     [3.,3.,0.],[2.,3.,0.],[2.,4.,0.],[3.,4.,0.],[3.,5.,0.],[0.,5.,0.],[0.,4.,0.],[1.,4.,0.],
     [1.,3.,0.],[0.,3.,0.], [0.,2.,0.],[1.,2.,0.],[1.,1.,0.],[0.,1.,0.]
     ])
-    square = np.array([[0,0,0],[20,0,0],[20,6,0],[0,6,0]])
+    square = np.array([[0,0,0],[25,0,0],[25,6,0],[0,6,0]])
     triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
 
