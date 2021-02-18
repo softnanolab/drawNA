@@ -1,3 +1,4 @@
+from numpy.core.numeric import cross
 from drawNA.lattice import LatticeRoute, LatticeEdge, LatticeNode
 from drawNA.oxdna import Strand, System
 from drawNA.tools import DNANode, DNAEdge
@@ -421,7 +422,7 @@ class StapleBaseClass:
 
         """
         assert type(staples) == list
-        assert len(staples) <= 2
+        # assert len(staples) <= 2
         staple_type_to_int = {'S': 10, 'C': 20, 'T':30}
         for staple in staples:
             # Ensure staple is valid
@@ -948,20 +949,126 @@ class StaplingAlgorithm2(StapleBaseClass):
         min, max = _3p_idx[0], _5p_idx[0]
         all_idx = list(_3p_idx) + list(_5p_idx)
         print("StapleAlgorithm2: Verifying inputted route is supported")
+        
         if not all(idx == min or idx == max for idx in all_idx):
             logger.kill(f'Scaffold route is unsupported with this algorithm, edges must be aligned')
 
     def find_approx_crossover_indices(self):
         """ Calculates approximate indices of 5 potential crossover points """
-        pass
+        # Set up
+        self.i_left = 0
+        if self.info_dataframe['start side'][0] == "left":
+            self.i_right = self.info_dataframe['5p'][0]
+        else:
+            logger.kill(f"Scaffold route travelling in this direction is currently unsupported")
+        
+        # Calculate
+        self.i_q1 = int( round ( 1/4 * (self.i_right-self.i_left) , 0 ) )
+        self.i_q2 = int( round ( 2/4 * (self.i_right-self.i_left) , 0 ) )
+        self.i_q3 = int( round ( 3/4 * (self.i_right-self.i_left) , 0 ) )
 
     def find_closest_crossover_indices(self):
         """ Ensures 5 potential crossover points all occur where  """
-        pass
+
+        def _find_crossover(guess_idx: int, row: int) -> int:
+            """ Oscillates around guess_idx to find a nt where the
+            a1 vector of the scaffold is pointing down (== -1)"""   
+            modifier_list = [1,-2,3,-4,5,-6, 7, -8, 9, -10, 11, -12] 
+            i = 0
+            while not self.lattice[row, guess_idx, 1] == -1:
+                # modify index by oscillating around the current index +1, -2, +3... etc
+                guess_idx += modifier_list[i]
+                i += 1
+
+            if not self.lattice[row, guess_idx, 1] == -1:
+                logger.kill(f"Crossover point was not found near {guess_idx} on row {row}")
+            else:
+                logger.info(f"Crossover was found at an index of {guess_idx} on row {row}")
+                return guess_idx
+        
+        self.i_left =   _find_crossover(self.i_left, 0)
+        self.i_q1   =   _find_crossover(self.i_q1,   0)
+        self.i_q2   =   _find_crossover(self.i_q2,   1)
+        self.i_q3   =   _find_crossover(self.i_q3,   1)
+        self.i_right =  _find_crossover(self.i_right,1)
+
+        def duplicate_check(list_of_integers: list) -> bool:
+            """ Check for duplicates"""
+            for item in list_of_integers:
+                if list_of_integers.count(item) > 1:
+                    return True
+                return False
+
+        if duplicate_check([self.i_left, self.i_q1,self.i_q2,self.i_q3,self.i_right]):
+            logger.kill(f"A unique set of crossover points was not found")
+        else:
+            logger.info(f"A set of suitable crossovers has been found")
+
     
     def generate_staples(self):
         """ Generates staples in two cycles: 1) left half, 2) right half """
-        pass
+        logger.info("StapleAlgorithm2: Generating staples")
+        staples = []
+        if self.info_dataframe['start side'][0] == "left":
+            ## ADD STAPLES TO LEFT HALF
+            for row in range(0,self.n_rows,2):
+                if not row == self.n_rows - 1: # not the last row
+                    logger.info("Staples left on row {} and {}".format(row, row+1))  
+                    staple_left_1 = [
+                        [self.i_q1-1, row,   'S'],
+                        [self.i_left, row,   'C'],
+                        [self.i_left, row+1, 'C'],
+                        [self.i_q1-1, row+1, 'T'],
+                    ]
+                    staple_left_2 = [
+                        [self.i_q2-1, row,   'S'],
+                        [self.i_q1,   row,   'C'],
+                        [self.i_q1,   row+1, 'C'],
+                        [self.i_q2-1, row+1, 'T'],
+                    ]
+                else:
+                    logger.info("Staples left on last row {}".format(row))  
+                    staple_left_1 = [[self.i_q1-1, row, 'S'], [self.i_left, row, 'T']]
+                    staple_left_2 = [[self.i_q2-1, row, 'S'], [self.i_q1, row, 'T']]
+                
+                staples.append(staple_left_1)
+                staples.append(staple_left_2)
+            
+            ## ADD STAPLES TO RIGHT HALF
+            for row in range(1,self.n_rows,2):
+                if not row == self.n_rows - 1: # not the last row
+                    logger.info("Staples right on row {} and {}".format(row, row+1))  
+                    staple_right_1 = [
+                        [self.i_q2, row,   'S'],
+                        [self.i_q3, row,   'C'],
+                        [self.i_q3, row+1, 'C'],
+                        [self.i_q2, row+1, 'T'],
+                    ]
+                    staple_right_2 = [
+                        [self.i_q3+1,  row,   'S'],
+                        [self.i_right, row,   'C'],
+                        [self.i_right, row+1, 'C'],
+                        [self.i_q3+1,  row+1, 'T'],
+                    ]
+                else:
+                    logger.info("Staples right on last row {}".format(row))  
+                    staple_right_1 = [[self.i_q2,   row, 'S'], [self.i_q3,    row, 'T']]
+                    staple_right_2 = [[self.i_q3+1, row, 'S'], [self.i_right, row, 'T']]
+                
+                staples.append(staple_right_1)
+                staples.append(staple_right_2)
+            
+            # Single domain for row 0
+            staple_right_1 = [[self.i_right, 0, 'S'], [self.i_q3+1, 0, 'T']]
+            staple_right_2 = [[self.i_q3,    0, 'S'], [self.i_q2,   0, 'T']]
+            
+            staples.append(staple_right_1)
+            staples.append(staple_right_2)
+
+            self.write_staples_to_array(staples)
+        else:
+            logger.kill("Stapling for this direction has not yet been implemented")
+
 
 class StapleContainer:
     """ Stores staple and scaffold strand objects with the ability to modify them.
@@ -1057,7 +1164,7 @@ def main():
     [3.,3.,0.],[2.,3.,0.],[2.,4.,0.],[3.,4.,0.],[3.,5.,0.],[0.,5.,0.],[0.,4.,0.],[1.,4.,0.],
     [1.,3.,0.],[0.,3.,0.], [0.,2.,0.],[1.,2.,0.],[1.,1.,0.],[0.,1.,0.]
     ])
-    square = np.array([[0,0,0],[10,0,0],[10,9,0],[0,9,0]])
+    square = np.array([[0,0,0],[20,0,0],[20,6,0],[0,6,0]])
     triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
 
@@ -1065,6 +1172,10 @@ def main():
     # staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
     # plot_staples(container)
     staple_2 = StaplingAlgorithm2(route)
+    staple_2.plot_lattice()
+    container_2 = staple_2.generate_container()
+    system_2 = container_2.system()
+    system_2.write_oxDNA()
     return staple_2
 
 if __name__ == "__main__":
