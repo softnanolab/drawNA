@@ -1081,7 +1081,7 @@ class StapleContainer:
 
         self._staples = staple_strands
         self._baseclass = staple_base_class
-        self._scaffold = self._baseclass.route
+        self._scaffold = self._baseclass.scaffold_obj
     
     @property
     def staples(self) -> List[Strand]:
@@ -1176,10 +1176,11 @@ def main():
     container_2 = staple_2.generate_container()
     system_2 = container_2.system()
     system_2.write_oxDNA()
-    return staple_2
+    return staple_2, container_2
 
 if __name__ == "__main__":
-    staple_2 = main()
+    staple_2, container_2 = main()
+
     
     # route = generate(stacked_I*17)
     # system, container = staple_and_write_to_file(route, "stacked_I")
