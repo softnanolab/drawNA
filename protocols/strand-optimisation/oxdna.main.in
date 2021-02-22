@@ -1,0 +1,33 @@
+##############################
+####  PROGRAM PARAMETERS  ####
+##############################
+interaction_type = DNA2
+backend = CPU
+backend_precision = double
+
+##############################
+####    SIM PARAMETERS    ####
+##############################
+steps = 100000000
+newtonian_steps = 103
+diff_coeff = 2.50
+fix_diffusion = 0
+thermostat = langevin
+
+T = 0.1
+dt = 0.001
+verlet_skin = 0.05
+salt_concentration = 0.1
+
+##############################
+####    INPUT / OUTPUT    ####
+##############################
+topology = oxdna.local.top
+conf_file = oxdna.local.conf
+trajectory_file = oxdna.traj.conf
+refresh_vel = 1
+print_conf_interval = 1000000
+print_energy_every = 20000
+time_scale = linear
+restart_step_counter = 0
+energy_file = oxdna.energy.main
