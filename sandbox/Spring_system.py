@@ -14,7 +14,7 @@ vector product of e1 and e2
 class Node:
     id_iter = itertools.count()
     def __init__(self):
-        self.position = np.array([[0,0,0], [0,0,0], [0,0,0], [0,0,0], [0,0,0]])
+        self.position = np.zeros((5, 3))
         self.index = next(Node.id_iter)
     def set_position(self, e0, e1, e2, e3):
         '''
@@ -30,10 +30,8 @@ class Node:
     def get_position(self):
         return self.position
 
-# test_node = Node()
-# test_node.set_position([1,1,1], [0, -1, -1], [0, -2, -1])
-# print(type(test_node.position)) # returns ndarray
-# print(test_node.position)
+    def __repr__(self):
+        return f"Node({self.index})"
 
 class Connector:
     def __init__(self, node_1, node_2):
@@ -128,24 +126,6 @@ class Spring(Connector):
         total_energy = rot_x_energy + rot_y_energy + rot_z_energy
         return total_energy
 
-test_node_1 = Node()
-test_node_1.set_position([0, 0, 0], [0, -1, -1], [0, -2, -1], [1, 1, 1])
-test_node_2 = Node()
-test_node_2.set_position([0, 1, 0], [1, 1, 1], [2, 2, 1], [1, 1, 1])
-test_node_3 = Node()
-test_node_3.set_position([1, 1, 0], [2, 1, 1], [1,-1,-2], [1, 1, 1])
-test_node_4 = Node()
-test_node_4.set_position([1, 0, 0], [1, 1, 1], [0, 2, 2], [1, 1, 1])
-test_beam_1 = Beam(test_node_1, test_node_2)
-test_beam_2 = Beam(test_node_2, test_node_3)
-test_beam_3 = Beam(test_node_3, test_node_4)
-test_beam_4 = Beam(test_node_4, test_node_1)
-system = [test_node_1, test_node_2, test_node_3, test_beam_4,
-          test_beam_1, test_beam_2, test_beam_3, test_node_4
-          ]
-test_spring = Spring(test_node_1, test_node_2)
-
-
 def visualise_spring_system(system):    
     node_pos = []
     x_pos_node = []
@@ -215,8 +195,7 @@ def generate_matrix(system):
     single or double crossovers, open nicks and bulges modeled as torsional springs'''
     print(pd.DataFrame(matrix))
     return matrix
-test_system = [test_node_1, test_node_2, test_beam_1] 
-generate_matrix(system)
+
 
 
 def visualise(matrix: np.ndarray, show: bool = False):
@@ -239,9 +218,32 @@ def visualise(matrix: np.ndarray, show: bool = False):
 
        
 def main():
+    # test_node = Node()
+    # test_node.set_position([1,1,1], [0, -1, -1], [0, -2, -1])
+    # print(type(test_node.position)) # returns ndarray
+    # print(test_node.position)
+    test_node_1 = Node()
+    test_node_1.set_position([0, 0, 0], [0, -1, -1], [0, -2, -1], [1, 1, 1])
+    test_node_2 = Node()
+    test_node_2.set_position([0, 1, 0], [1, 1, 1], [2, 2, 1], [1, 1, 1])
+    test_node_3 = Node()
+    test_node_3.set_position([1, 1, 0], [2, 1, 1], [1,-1,-2], [1, 1, 1])
+    test_node_4 = Node()
+    test_node_4.set_position([1, 0, 0], [1, 1, 1], [0, 2, 2], [1, 1, 1])
+    test_beam_1 = Beam(test_node_1, test_node_2)
+    test_beam_2 = Beam(test_node_2, test_node_3)
+    test_beam_3 = Beam(test_node_3, test_node_4)
+    test_beam_4 = Beam(test_node_4, test_node_1)
+    system = [test_node_1, test_node_2, test_node_3, test_beam_4,
+            test_beam_1, test_beam_2, test_beam_3, test_node_4
+            ]
+    test_spring = Spring(test_node_1, test_node_2)
+    test_system = [test_node_1, test_node_2, test_beam_1] 
+    generate_matrix(system)
     matrix = generate_matrix(system)
     #visualise_spring_system(system)
     visualise(matrix, show=True)
+    
     return
 
 if __name__ == '__main__':

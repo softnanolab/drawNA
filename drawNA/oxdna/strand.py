@@ -101,7 +101,8 @@ class Strand:
         the information for both the configuration and
         topology files.
         """
-        result = pd.DataFrame([i.series for i in self.nucleotides])
+        nucleotides = self.nucleotides
+        result = pd.DataFrame([i.series for i in nucleotides])
         return result
 
     @property
@@ -213,7 +214,7 @@ def generate_helix(
         strand.add_nucleotide(strand.nucleotides[-1].make_5p(base, angle))
 
     # add to strand list which will be returned
-    strands.append(strand.copy())
+    strands.append(strand)
 
     # create across strand 
     if double:
@@ -221,6 +222,6 @@ def generate_helix(
         # iterate over nucleotides from original strand but in reverse
         for nucleotide in strands[0].nucleotides[::-1]:
             strand.add_nucleotide(nucleotide.make_across())
-        strands.append(strand.copy())
+        strands.append(strand)
     
     return strands

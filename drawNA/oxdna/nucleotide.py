@@ -214,7 +214,7 @@ class Nucleotide:
                 "strand": self._strand_index,
                 "3p": self._before,
                 "5p": self._after,
-                "across": self.across,
+                "across": self._across.index,
             }
         )
 

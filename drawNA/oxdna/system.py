@@ -101,7 +101,7 @@ class System:
         self._strands = []
 
     def __repr__(self) -> str:
-        return f"oxDNASystem[strands: {len(self._strands)}, nucleotides: {len(self.nucleotides)}]"
+        return f"oxDNASystem[strands: {len(self.strands)}, nucleotides: {len(self.nucleotides)}]"
 
     @property
     def E_tot(self):
@@ -129,7 +129,7 @@ class System:
 
     @property
     def strands(self) -> list:
-
+        
         # used to set Strand._nucleotide_shift
         shift = 0
         for i, strand in enumerate(self._strands):
@@ -143,12 +143,15 @@ class System:
     def nucleotides(self) -> list:
         result = []
         for strand in self.strands:
-            result += strand._nucleotides
+            result += strand.nucleotides
         return result
 
     @property
     def dataframe(self) -> pd.DataFrame:
-        return pd.concat([i.dataframe for i in self.strands]).reset_index(drop=True)
+        # needs to be run to ensure that the nucleotide across numbering is correct
+        self.nucleotides 
+        strands = self.strands
+        return pd.concat([i.dataframe for i in strands]).reset_index(drop=True)
 
     @property
     def configuration(self) -> pd.DataFrame:
@@ -231,9 +234,9 @@ class System:
 
         try:
             if index == None:
-                self._strands.append(addition.copy())
+                self._strands.append(addition)
             else:
-                self._strands.insert(index, addition.copy())
+                self._strands.insert(index, addition)
         except TypeError:
             raise TypeError("Index must an an integer")
 
