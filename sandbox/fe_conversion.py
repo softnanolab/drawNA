@@ -1,3 +1,5 @@
+import json
+
 from typing import List
 
 import matplotlib.pyplot as plt
@@ -72,6 +74,11 @@ class Converter(System):
         return result
 
     def create_connectors(self) -> List[Connector]:
+        connectors = []
+        # use self.bonds property to iterate over all bonds
+        # each bond should be assigned a connector
+
+        # 
         return
 
     @property
@@ -100,20 +107,52 @@ def add_node(ax: plt.Axes, node: Node):
         ax.add_artist(arrow)
     return
 
-def main():
-    system = Converter([50, 50, 50])
-    strands = generate_helix(21, double=True)
-    system.add_strands(strands)
-    print(system.dataframe)
-    nodes = system.create_nodes()
-    print(nodes)
-    strands = generate_helix(5, double=True)
-    system = System([50, 50, 50])
-    system.add_strands(strands)
-    system.nucleotides
-    print(json.dumps({hex(id(i)): f"{i.__repr__()}: [{i.across}|{i._across.index}] {hex(id(i._across))}" for i in system.nucleotides}, indent=2))
+def create_converter(kind: str) -> Converter:
+    def _duplex() -> List[Strand]:
+        return generate_helix(5, 'ATCGG', double=True)
 
-    
+    def _nick() -> List[Strand]:
+        strands = generate_helix(6, 'AATTCC', double=True)
+        main_strand = strands[0]
+        single_strands = [
+            Strand(
+                nucleotides=strands[1].nucleotides[i*3: (i+1)*3]
+            ) for i in range(2)
+        ]
+        return [main_strand] + single_strands
+
+    def _ssDNA() -> List[Strand]:
+        return
+
+    def _double_crossover() -> List[Strand]:
+        return
+
+    def _single_crossover() -> List[Strand]:
+        return
+
+    def _open_nick() -> List[Strand]:
+        return
+
+    def _bulge() -> List[Strand]:
+        return
+
+    _dispatch = {
+        'duplex': _duplex,
+        'nick': _nick,
+        'ssDNA': _ssDNA,
+        'double_crossover': _double_crossover,
+        'single_crossover': _single_crossover,
+        'open_nick': _open_nick,
+        'bulge': _bulge,
+    }
+
+    system = Converter([20, 20, 20])
+    strands = _dispatch[kind]()
+    if strands:
+        system.add_strands(strands)
+    return system
+
+def visualise_nodes(nodes: List[Node]):
     fig = plt.figure(figsize=(9, 9))
     ax = fig.add_subplot(111, projection='3d')
     ax.autoscale(enable=True, axis='both', tight=True)
@@ -126,10 +165,23 @@ def main():
 
     plt.tight_layout()
     plt.show()
-
     return
 
+def main():
+    names = [
+        'duplex',
+        'nick',
+        'ssDNA',
+        'double_crossover',
+        'single_crossover',
+        'open_nick',
+        'bulge',
+    ]
+
+    # create a dictionary of name with its corresponding system
+    systems = {name: create_converter(name) for name in names}
+    return systems
+
 if __name__ == '__main__':
-    import json
-    main()
+    systems = main()
     
