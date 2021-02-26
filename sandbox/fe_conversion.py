@@ -6,7 +6,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from drawNA.oxdna import Nucleotide, Strand, System
-from drawNA.oxdna import generate_helix
+from drawNA.oxdna import generate_helix, POS_BACK
+
+FENE_LENGTH = 0.76
 
 from Spring_system import Node, Spring, Beam, Connector # type: ignore
 
@@ -49,6 +51,22 @@ class NucleotidePair(Node):
             nt_1._a2, # e2
             nt_1._a3, # e3
         )
+
+class ConnectionManager():
+    def __init__(self, node_1: Node, node_2: Node):
+        assert isinstance(node_1, Node)
+        assert isinstance(node_2, Node)
+        self.node_1 = node_1
+        self.node_2 = node_2
+        self.connections = 0
+
+    def add_connection(self):
+        self.connections += 1
+        return
+
+    @property
+    def connector(self) -> Connector:
+        return Connector(self.node_1, self.node_2)
 
 class Converter(System):
     def __init__(self, *args, **kwargs):
@@ -135,10 +153,64 @@ def create_converter(kind: str) -> Converter:
         return [main_strand] + single_strands
 
     def _double_crossover() -> List[Strand]:
-        return
+        strands = generate_helix(6, 'AATTCC', double=True)
+        original = strands[0]
+        single_strands = [
+            Strand(
+                nucleotides=strands[1].nucleotides[i*3: (i+1)*3]
+            ) for i in range(2)
+        ]
+        # make crossover 1 and half of other main strand
+        last_nuc = single_strands[0].nucleotides[0]
+        start = last_nuc.pos_back + (FENE_LENGTH - POS_BACK) * -last_nuc._a1
+        crossover_1, main = generate_helix(
+            3, 
+            start_position=start, 
+            double=True,
+            a1=-last_nuc._a1,
+            double=True,
+            direction = -last_nuc._a3,
+        )
+        for nucleotide in crossover_1.nucleotides:
+            single_strands[0].add_nucleotide(nucleotide)
+
+        # make rest of main strand
+        for base in 'ATC':
+            new = main.make_3p(base)
+            main.add_nucleotide(new)
+            # make crossover 2
+            single_strands[1].add_nucleotide(new.make_across())
+
+        return [original, main] + single_strands
 
     def _single_crossover() -> List[Strand]:
-        return
+        strands = generate_helix(6, 'AATTCC', double=True)
+        original = strands[0]
+        single_strands = [
+            Strand(
+                nucleotides=strands[1].nucleotides[i*3: (i+1)*3]
+            ) for i in range(2)
+        ]
+        # make crossover 1 and half of other main strand
+        last_nuc = single_strands[0].nucleotides[0]
+        start = last_nuc.pos_back + (FENE_LENGTH - POS_BACK) * -last_nuc._a1
+        crossover_1, main = generate_helix(
+            3, 
+            start_position=start, 
+            double=True,
+            a1=-last_nuc._a1,
+            double=True,
+            direction = -last_nuc._a3,
+        )
+
+        # make rest of main strand
+        for base in 'ATC':
+            new = main.make_3p(base)
+            main.add_nucleotide(new)
+            # make crossover 2
+            single_strands[1].add_nucleotide(new.make_across())
+
+        return [original, main, crossover_1] + single_strands
 
     def _open_nick() -> List[Strand]:
         return
@@ -150,8 +222,8 @@ def create_converter(kind: str) -> Converter:
         'duplex': _duplex,
         'nick': _nick,
         'ssDNA': _ssDNA,
-        'double_crossover': _double_crossover,
-        'single_crossover': _single_crossover,
+        #'double_crossover': _double_crossover,
+        #'single_crossover': _single_crossover,
         'open_nick': _open_nick,
         'bulge': _bulge,
     }
