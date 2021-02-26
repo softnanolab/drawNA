@@ -14,7 +14,7 @@ vector product of e1 and e2
 class Node:
     id_iter = itertools.count()
     def __init__(self):
-        self.position = np.zeros((5, 3))
+        self.position = np.zeros((4, 3))
         self.index = next(Node.id_iter)
     def set_position(self, e0, e1, e2, e3):
         '''
