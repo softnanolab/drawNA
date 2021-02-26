@@ -2,6 +2,7 @@ import json
 
 from typing import List
 
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from drawNA.oxdna import Nucleotide, Strand, System
@@ -122,7 +123,16 @@ def create_converter(kind: str) -> Converter:
         return [main_strand] + single_strands
 
     def _ssDNA() -> List[Strand]:
-        return
+        strands = generate_helix(11, 'GTAGTAATGGG', double=True)
+        main_strand = strands[0]
+        for nt in main_strand.nucleotides[3:8]:
+            nt.across = None
+        single_strands = [
+            Strand(
+                nucleotides=strands[1].nucleotides[i: i+3]
+            ) for i in (0, 8)
+        ]
+        return [main_strand] + single_strands
 
     def _double_crossover() -> List[Strand]:
         return
@@ -184,4 +194,5 @@ def main():
 
 if __name__ == '__main__':
     systems = main()
+    print(systems['ssDNA'].dataframe)
     
