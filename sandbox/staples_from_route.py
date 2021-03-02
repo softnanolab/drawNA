@@ -8,11 +8,12 @@ from matplotlib.ticker import MultipleLocator
 import pandas as pd
 
 from copy import deepcopy
-from typing import List
+from typing import List, Tuple
 
 import itertools as it
 
 from softnanotools.logger import Logger
+from os import path
 
 logger = Logger("Staples_from_route")
 logger.level = 10
@@ -988,8 +989,9 @@ class StaplingAlgorithm2(StapleBaseClass):
         
         self.i_left =   _find_crossover(self.i_left, 0)
         self.i_q1   =   _find_crossover(self.i_q1,   0)
-        self.i_q2   =   _find_crossover(self.i_q2,   1)
         self.i_q3   =   _find_crossover(self.i_q3,   1)
+        self.i_q2   =   int(round((self.i_q1+self.i_q3)/2,0))
+        # self.i_q2   =   _find_crossover(self.i_q2,   1) no crossovers occur at this point
         self.i_right =  _find_crossover(self.i_right,1)
 
         def duplicate_check(list_of_integers: list) -> bool:
@@ -1082,6 +1084,7 @@ class StapleContainer:
         self._staples = staple_strands
         self._baseclass = staple_base_class
         self._scaffold = self._baseclass.scaffold_obj
+        self._scaffold_rows = self._baseclass.scaffold_rows
     
     @property
     def staples(self) -> List[Strand]:
@@ -1114,9 +1117,146 @@ class StapleContainer:
         self._staples.append(staple_strand)
 
     def plot(self):
+        """ Generates a plot for the scaffold and original set of staples generated in the StapleAlgorithm """
         self._baseclass.plot_lattice()
 
+class Configuration:
+    """ Class object with stores multiple strands of DNA and can export/write to file"""
+    def __init__(self, staples: list, scaffold: Strand):
+        self.dna_strands = staples + [scaffold]
 
+    @property
+    def n_staples(self) -> int:
+        return len(self.dna_strands) - 1
+
+    def system(self, **kwargs) -> System:
+        """ Returns oxDNA.System object with the scaffold and all staple strands """
+        _system = System(kwargs.get('box', np.array([50., 50., 50.])))
+        _system.add_strands(self.dna_strands)
+        return _system
+        
+    def output_files(self, name: str, root_dir: str = ".", **kwargs):
+        """ Generates oxDNA files (`.top` and `.conf`) for the strand configuration """
+        return self.system(**kwargs).write_oxDNA(prefix = name, root = root_dir)
+
+
+class ConfigurationGenerator(StapleContainer):
+    """
+    Contains functions to split a double domained staple into two single
+    -domained staples. Stores these in `Configuration` objects, which can be outputted
+    as oxDNA and LAMMPS objects.
+    """
+    def __init__(self, 
+                staple_strands: List[Strand] = [], 
+                staple_base_class: StapleBaseClass = None):
+        super().__init__(staple_strands, staple_base_class)
+        logger.info("Configuration Generator produced.")
+        ## Initialise
+        self.configurations = []
+        self.configurations.append(Configuration(self.staples, self.scaffold))
+        # Min/max x-coord of scaffold
+        self.min_x, self.max_x = self.find_minmax_x_of_scaffold()
+
+        ## Generate Configurations
+        logger.info("Generating multiple configurations")
+        self.generate_all_configs_1()
+
+
+    def find_minmax_x_of_scaffold(self):
+        """ Find min and max x coord of nt backbone position on scaffold.
+        
+        First collect x positions of all nt on scaffold
+        """
+        scaf = self._scaffold_rows[0]
+        backbone_x = [nt.pos_back[0] for nt in scaf.nucleotides]
+        _min = min(backbone_x)
+        _max = max(backbone_x)
+        return _min, _max
+
+    def inside_staple(self, staple: Strand) -> bool:
+        """ 
+        Returns true if a given staple does not have any nts at the edges of the scaffold.
+        
+        Checks whether a staple contains a max and min x-coord of the backbone (nucleotide.pos_back[0])
+        and if it does, then it means that the staple is NOT an inside staple.
+        """
+        backbone_x = [nt.pos_back[0] for nt in staple.nucleotides]
+        
+        return not any([any(x <= self.min_x for x in backbone_x), any(x >= self.max_x for x in backbone_x)])
+
+    @staticmethod
+    def double_domained(staple: Strand) -> bool:
+        """ Checks whether a staple is double domained """
+        # Ensure staple is double domained
+        nt_dir = [nt._a3[0] for nt in staple.nucleotides] # list of -1.0 (and if double domained 1.0)
+        unique_directions = set(nt_dir)
+        if len(unique_directions) == 1:
+            print("Staple is single domained -> skipping")
+            return False
+        else:
+            return True
+
+        
+    @staticmethod
+    def split_staple(staple_to_split: Strand):
+        """ Splits a double domained staple into two single domained staples.
+
+        Finds the index of the nt where the backbone site changes by 1 unit
+        in the y direction (i think). Then copies the nt up to that point and 
+        again copies the nt after that point, forming two new oxDNA strand objects.
+
+        Returns (oxDNA.Strand, oxDNA.Strand):
+            a tuple of two single domained staples 
+        """
+
+        # Find index of first nt in the second domain of the staple
+        i = 0
+        hello = staple_to_split.nucleotides[i]._a3[0]
+
+        while not hello == 1.0:
+            i += 1
+            hello = staple_to_split.nucleotides[i]._a3[0]
+
+        # Define new single domain strands
+        strand_1 = Strand(nucleotides=staple_to_split.nucleotides[:i])
+        strand_2 = Strand(nucleotides=staple_to_split.nucleotides[i:])
+
+        return strand_1, strand_2
+
+    def generate_all_configs_1(self):
+        """ Generates configurations with one inner staple converted to two single domains
+
+        Yields additions to list of configuration objects (which can be written to file)
+        """
+        for i, staple in enumerate(self.staples):
+            if self.inside_staple(staple) and self.double_domained(staple):
+
+                # Copy list of staples and remove staple we want to split
+                new_staple_set = deepcopy(self.staples)
+                logger.info(f"Replacing staple {i} with two single domain staples")
+                
+                # Split double domain staple to two single domain staples
+                new_staple_1, new_staple_2 = self.split_staple(staple)
+
+                # Add new staples to list             
+                new_staple_set.append(new_staple_1)
+                new_staple_set.append(new_staple_2)
+                del new_staple_set[i]
+
+                # Create configuration and append to list of configurations
+                new_configuration = Configuration(new_staple_set, self.scaffold)
+                assert new_configuration.n_staples == len(new_staple_set)
+                assert len(new_staple_set) == len(self.staples) + 1
+                print("Generating a new configuration of staples")
+                self.configurations.append(new_configuration)
+
+    def write_to_file(self, name: "str", root = "."):
+        tot = len(self.configurations)
+        for i, conf in enumerate(self.configurations):
+            name_str = name + "-" + str(i)
+            logger.info(f"Writing files {i+1}/{tot}")
+            conf.output_files(name_str, root)
+    
 ## Copied from protocols/lattice-route/DNA_snake.py
 def generate(polygon_vertices: np.ndarray, title: str = "Generate()") -> LatticeRoute:
     print('Running Generate Function')
@@ -1157,6 +1297,18 @@ def plot_staples(staples: StapleContainer):
     print("Plotting Staples with scaffold crossover points labelled")
     staples.plot_lattice(layer=0, show_staple_nodes=False)
 
+def param_study_1():
+    square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,2.5,1])
+    rectangle = square*[8,5,1]
+    route = generate(rectangle)
+    
+    staple_2 = StaplingAlgorithm2(route)
+    staple_2.plot_lattice()
+    container_2 = staple_2.generate_container()
+    system_2 = container_2.system()
+    system_2.write_oxDNA("half")
+    return staple_2, container_2
+
 def main():
     hourglass = np.array([[0.,0.,0.],[4,6.,0.],[0,12,0],[12,12,0],[8,6.,0.],[12,0.,0.]])
     stacked_I = np.array([
@@ -1164,11 +1316,11 @@ def main():
     [3.,3.,0.],[2.,3.,0.],[2.,4.,0.],[3.,4.,0.],[3.,5.,0.],[0.,5.,0.],[0.,4.,0.],[1.,4.,0.],
     [1.,3.,0.],[0.,3.,0.], [0.,2.,0.],[1.,2.,0.],[1.,1.,0.],[0.,1.,0.]
     ])
-    square = np.array([[0,0,0],[25,0,0],[25,6,0],[0,6,0]])
+    square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,2.5,1])
     triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
 
-    route = generate(square*2)
+    route = generate(square*[8,5,1])
     # staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
     # plot_staples(container)
     staple_2 = StaplingAlgorithm2(route)
@@ -1176,11 +1328,17 @@ def main():
     container_2 = staple_2.generate_container()
     system_2 = container_2.system()
     system_2.write_oxDNA()
+
+    staple_1 = StaplingAlgorithm1(route)
+    staple_1.plot_lattice()
     return staple_2, container_2
 
 if __name__ == "__main__":
-    staple_2, container_2 = main()
-
+    staple_2, container_2 = param_study_1()
+    configgen = ConfigurationGenerator(staple_strands = container_2.staples, staple_base_class = staple_2)
+    ROOT = "/".join(path.abspath(__file__).split("/")[:-1])
+    print(ROOT)
+    configgen.write_to_file(name = "batch1", root = ROOT) 
     
     # route = generate(stacked_I*17)
     # system, container = staple_and_write_to_file(route, "stacked_I")
