@@ -153,6 +153,9 @@ cando.*.conf
 
 # Keep Lattice-Route protocol files as an example
 !/protocols/lattice-route/**
+!/protocols/oxdna-observables/oxdna.local.conf
+!/protocols/oxdna-observables/oxdna.local.top
+
 
 # Ignore Mac DS_Store files
 .DS_Store
