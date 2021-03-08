@@ -128,12 +128,14 @@ def animate(t):
     return ani.draw()
 
 if True:
-    _ = matplotlib.animation.FuncAnimation(
+    animation = matplotlib.animation.FuncAnimation(
         ani.figure, 
         animate, 
-        frames=1000, 
+        frames=100, 
         interval=150, 
-        init_func=ani.draw
+        init_func=ani.draw,
+        repeat=False,
     )
+    animation.save('animation.gif', writer='imagemagick', fps=10)
 
 plt.show()
