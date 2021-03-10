@@ -120,38 +120,10 @@ class Spring(Connector):
             self.rot_y = 1353 #pN nm rad-1
             self.rot_z = 135.3 #pN nm rad-1
             
-
-def visualise_spring_system(system):    
-    pass
-    node_pos = []
-    x_pos_node = []
-    y_pos_node = []
-    z_pos_node = []
-    beam_start_pos = []
-    beam_end_pos = []
-    
-    for element in system:
-        if isinstance(element, Node):
-            node_pos.append(element.position[0])
-            x_pos_node.append(element.position[0][0])
-            y_pos_node.append(element.position[0][1])
-            z_pos_node.append(element.position[0][2])
-        elif isinstance(element, Beam):
-            pass
-                                
-    ax = plt.axes(projection = "3d")
-    ax.scatter3D(x_pos_node, y_pos_node, z_pos_node, color = "green")
-    
-    plt.show()
-
 def energy_function(system):
     energy = 0
     L0 = 0.34 #nm equilibrium bond distance
-    eq_theta_twist = 0.5985 # 34.29 degrees
-    def find_angle(v1, v2):
-        v1_u = v1 / np.linalg.norm(v1)
-        v2_u = v2 / np.linalg.norm(v2)
-        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+    eq_theta_twist = 0.5985 # 34.29 degrees    
     for element in system:
         if isinstance(element, Beam):
             stretch_energy_x = (1/2) * element.stretch_mod * (np.absolute(element.node_1.position[0][0] - element.node_2.position[0][0])-L0) ** 2
@@ -161,8 +133,10 @@ def energy_function(system):
             energy += stretch_energy_x + stretch_energy_y + stretch_energy_z + twist_energy
         elif isinstance(element, Node):
             if len(element.connectors) == 2:
-                bend_angle =  find_angle(element.connectors[0].direction, element.connectors[1].direction)
-                bend_energy = (1/2) * element.connectors[0].bend_mod * (bend_angle - 0) **2
+                cos_angle =  (element.connectors[0].direction[0] * element.connectors[1].direction[0] 
+                + element.connectors[0].direction[1] * element.connectors[1].direction[1]
+                + element.connectors[0].direction[2] * element.connectors[1].direction[2])  
+                bend_energy = (1/2) * element.connectors[0].bend_mod * np.arccos(cos_angle) **2
                 energy += bend_energy
                 
     return energy
@@ -218,8 +192,7 @@ square_system = [test_node_1, test_node_2, test_node_3, test_node_4,
 test_system = [test_node_1, test_node_2, test_beam_1] 
 print("Energy = ", energy_function(test_system))
 
-def main():    
-    #visualise_spring_system(system)
+def main():       
     visualise(matrix, show=True)
     return
 
