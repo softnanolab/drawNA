@@ -161,13 +161,16 @@ if __name__ == '__main__':
     
 #CanDo system 1 (5 beads connected)
 node_1, node_2, node_3, node_4, node_5 = Node(), Node(), Node(), Node(), Node()
+
 node_1.set_position([0, 0, 0])
 node_2.set_position([1, 0, 0])
 node_3.set_position([2, 0, 0])
 node_4.set_position([3, 0, 0])
 node_5.set_position([4, 0, 0])
 
-system_1 = [node_1, node_2, node_3, node_4, node_5]
+beam_1, beam_2, beam_3, beam_4, = Beam(node_1, node_2), Beam(node_2, node_3), Beam(node_3, node_4), Beam(node_4, node_5)
+
+system_1 = [node_1, node_2, node_3, node_4, node_5, beam_1, beam_2, beam_3, beam_4]
 system_1 = set_orientation_nodes(system_1)
 print("Energy of system 1 is", calculate_total_energy(system_1))
 
@@ -175,7 +178,8 @@ print("Energy of system 1 is", calculate_total_energy(system_1))
 node_6, node_7 = Node(), Node()
 node_6.set_position([5, 0, 0])
 node_7.set_position([6, 0, 0])
+beam_5, beam_6 = Beam(node_5, node_6), Beam(node_6, node_7)
 node_4.dsDNA = False
-system_2 = [node_1, node_2, node_3, node_4, node_5, node_6, node_7]
+system_2 = [node_1, node_2, node_3, node_4, node_5, node_6, node_7, beam_1, beam_2, beam_3, beam_4, beam_5, beam_6]
 system_2 = set_orientation_nodes(system_2)
 print("Energy of system 2 is", calculate_total_energy(system_2))
