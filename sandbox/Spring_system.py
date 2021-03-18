@@ -26,7 +26,8 @@ class Node:
 class OrientationNode(Node):
     def __init__(self, *args):
         self.connectors = []
-        self.position = np.array([-1, -1, -1])
+        self.position = np.array([0, 0, 0])
+        self.orientation_vector = np.array([0, 0, 0])
         self.orientation_node = True
 
 class Connector:
@@ -38,7 +39,7 @@ class Connector:
         for node in self.node_1, self.node_2:
             if self not in node.connectors:
                 node.connectors.append(self)
-
+                
     @property
     def node_index(self) -> Tuple[int]:
         """Indices of nodes, with node_1 first and node_2 second
@@ -88,6 +89,7 @@ def set_orientation_nodes(system):
                 temp_node.set_position(np.array([node.position[0] + 0.15, node.position[1], node.position[2]])) #0.15 in nm
                 temp_beam = Beam(temp_node, node)
                 temp_beam.orientation_beam = True
+                temp_beam.orientation_vector = node.position - temp_node.position
                 orientation_elements.append(temp_node)
                 orientation_elements.append(temp_beam)
     system = system + orientation_elements
@@ -144,78 +146,36 @@ def calculate_total_energy(system, T = 298): #T = temperature (K)
                 total_energy += energy
                 
         elif isinstance(element, Node):
-            path_1 = []
-            path_2 = []
-            
-            if element.orientation_node: #orientation nodes can only have 1 connector
-               n1 = element.connectors[0].node_1
-               assert n1.orientation_node, "r1 is not an orientation node"
-               path_1.append(n1)
-               n2 = element.connectors[0].node_2
-               assert n2.orientation_node == False, "Check this node again"
-               path_1.append(n2)
-               pass
+            pass
 
-               
-            
-    
     return total_energy
-
-def visualise(matrix: np.ndarray, show: bool = False):
-    """Taken from here: https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html
-    """
-    fig, ax = plt.subplots(figsize=(9, 9))
-    ax.imshow(matrix)
-    # Loop over data dimensions and create text annotations.
-    for i in range(len(matrix)):
-        for j in range(len(matrix)):
-            ax.text(j, i, matrix[i, j], ha="center", va="center", color="w", fontsize='xx-small')
-    # plot lines
-    n_elements = len(matrix) // 6
-    for i in range(n_elements - 1):
-        pos = (i+1) * 6 - 0.5
-        ax.plot([-0.5, len(matrix)-0.5], [pos, pos], 'k-')
-        ax.plot([pos, pos], [-0.5, len(matrix)-0.5], 'k-')
-    if show:
-        plt.show()
-
-test_node_1 = Node()
-test_node_1.set_position([0, 0, 0])
-
-test_node_2 = Node()
-test_node_2.set_position([1, 0, 0])
-
-
-test_node_3 = Node()
-test_node_3.set_position([1, 1, 0])
-
-test_node_4 = Node()
-test_node_4.set_position([0, 1, 0])
-
-
-test_beam_1 = Beam(test_node_1, test_node_2)
-
-test_beam_2 = Beam(test_node_2, test_node_3)
-
-test_beam_3 = Beam(test_node_3, test_node_4)
-test_beam_4 = Beam(test_node_4, test_node_1)
-
-square_system = [test_node_1, test_node_2, test_node_3, test_node_4, 
-          test_beam_1, test_beam_2, test_beam_3, test_beam_4,
-          ]
-
-square_system = set_orientation_nodes(square_system)
-'''
-test_system = [test_node_1, test_node_2, test_beam_1] 
-test_system = set_orientation_nodes(test_system)
-'''
 
         
 
-def main():       
-    visualise(matrix, show=True)
+def main():
     return
 
 if __name__ == '__main__':
     pass
     #main()
+    
+#CanDo system 1 (5 beads connected)
+node_1, node_2, node_3, node_4, node_5 = Node(), Node(), Node(), Node(), Node()
+node_1.set_position([0, 0, 0])
+node_2.set_position([1, 0, 0])
+node_3.set_position([2, 0, 0])
+node_4.set_position([3, 0, 0])
+node_5.set_position([4, 0, 0])
+
+system_1 = [node_1, node_2, node_3, node_4, node_5]
+system_1 = set_orientation_nodes(system_1)
+print("Energy of system 1 is", calculate_total_energy(system_1))
+
+#System 2
+node_6, node_7 = Node(), Node()
+node_6.set_position([5, 0, 0])
+node_7.set_position([6, 0, 0])
+node_4.dsDNA = False
+system_2 = [node_1, node_2, node_3, node_4, node_5, node_6, node_7]
+system_2 = set_orientation_nodes(system_2)
+print("Energy of system 2 is", calculate_total_energy(system_2))
