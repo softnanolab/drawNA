@@ -2,7 +2,7 @@ from drawNA.lattice.route import LatticeRoute
 from drawNA.lattice import LatticeRoute
 from drawNA.polygons import BoundaryPolygon
 from drawNA.oxdna import System
-from sandbox.staples_from_route import StapleBaseClass, StapleContainer, StaplingAlgorithm2, ConfigurationGenerator
+from sandbox.staples_from_route import ConfGenSplitDoubleDomains, StapleBaseClass, StaplingAlgorithm2, ConfGenSplitDoubleDomains
 
 import numpy as np
 import pytest
@@ -33,7 +33,7 @@ def stapled_scaffold(scaffold: LatticeRoute) -> StapleBaseClass:
 # 3. Assert
 def test_container(stapled_scaffold: StapleBaseClass):
     # Generate oxDNA strand objects for every staple and add to a container
-    container = stapled_scaffold.generate_container()
+    container = stapled_scaffold.generate_origami()
     # Generate oxDNA system filled with strand objects
     system = container.system()
     system.write_oxDNA(prefix = "test_square_algo_2")
@@ -46,9 +46,9 @@ def test_container(stapled_scaffold: StapleBaseClass):
 
 def test_configuration(stapled_scaffold: StapleBaseClass):
     # Generate oxDNA strand objects for every staple and add to a container
-    container = stapled_scaffold.generate_container()
+    container = stapled_scaffold.generate_origami()
     # Generate two single domain strands for all double domain strands which are not at the edges of the scaffold
-    generator = ConfigurationGenerator(staple_strands = container.staples, staple_base_class = stapled_scaffold)
+    generator = ConfGenSplitDoubleDomains(staple_strands = container.staples, staple_base_class = stapled_scaffold)
     
     # First configuration is the original configuration, hence n_staples of all others should be one greater than this
     n_staples_in_each_config = np.array([conf.n_staples for conf in generator.configurations])

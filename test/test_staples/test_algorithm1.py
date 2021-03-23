@@ -2,7 +2,7 @@ from drawNA.lattice.route import LatticeRoute
 from drawNA.lattice import LatticeRoute
 from drawNA.polygons import BoundaryPolygon
 from drawNA.oxdna import System
-from sandbox.staples_from_route import StapleBaseClass, StapleContainer, StaplingAlgorithm1
+from sandbox.staples_from_route import StapleBaseClass, StaplingAlgorithm1
 
 import numpy as np
 import pytest
@@ -28,7 +28,7 @@ def stapled_scaffold(scaffold: LatticeRoute) -> StapleBaseClass:
 # 3. Assert
 def test_container(stapled_scaffold: StapleBaseClass):
     # Generate oxDNA strand objects for every staple and add to a container
-    container = stapled_scaffold.generate_container()
+    container = stapled_scaffold.generate_origami()
 
     # Generate oxDNA system filled with strand objects
     system = container.system()

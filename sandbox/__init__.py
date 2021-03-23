@@ -1,1 +1,1 @@
-from .staples_from_route import StapleBaseClass, StapleContainer, StaplingAlgorithm1, StaplingAlgorithm2
+from .staples_from_route import StapleBaseClass, OrigamiContainer, StaplingAlgorithm1, StaplingAlgorithm2, ConfGenSplitDoubleDomains, ConfGenAddUnpairedNuc
