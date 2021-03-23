@@ -465,7 +465,7 @@ class StapleBaseClass:
             else:
                 pass
 
-    def generate_container(self):
+    def generate_origami(self):
         """ Converts `self.lattice` to staples using `self.scaffold_obj` returning `OrigamiContainer` object
 
         Generates staples in the following steps:
@@ -1495,11 +1495,12 @@ class ConfGenAddUnpairedNuc(OrigamiContainer):
 
                 # position COM of new base
                 new_pos_com = (nucleotides[n1_idx].pos_com + nucleotides[n2_idx].pos_com)/2
-                new_pos_com += 0.5 * nucleotides[n1_idx]._a3  # shift horizontally
-                new_pos_com += nucleotides[n1_idx]._a2 * POS_BASE # shift COM such that backbone is inbetween n1 and n2
+                new_pos_com += nucleotides[n1_idx]._a3 * 0.5  # shift horizontally
+                # new_pos_com -= nucleotides[n1_idx]._a2 * POS_BASE * 0.3 # shift COM such that backbone is inbetween n1 and n2
+                new_pos_com -= nucleotides[n1_idx]._a1 * 0.4
 
                 # define orientation/tilting vectors
-                new_a1 = nucleotides[n1_idx]._a2
+                new_a1 = -nucleotides[n1_idx]._a1
                 new_a3 = nucleotides[n1_idx]._a3
                 
                 # create new nucleotide
@@ -1541,19 +1542,14 @@ class ConfGenAddUnpairedNuc(OrigamiContainer):
                 new_2_pos_com = nucleotides[n2_idx].pos_com + 0.5 * nucleotides[n1_idx]._a3
                 
                 # shift COM towards center of crossover (y) direction
-                new_1_pos_com -= nucleotides[n1_idx]._a1 * 0.5
-                new_2_pos_com -= nucleotides[n2_idx]._a1 * 0.5
-
-                # shift COM towards center of crossover (z) direction
-                new_1_pos_com += nucleotides[n1_idx]._a2 * 0.5
-                new_2_pos_com += nucleotides[n2_idx]._a2 * 0.5
-
+                new_1_pos_com -= nucleotides[n1_idx]._a1 * 0.1
+                new_2_pos_com -= nucleotides[n2_idx]._a1 * 0.1
                 
                 # orientation and tilting of backbone
-                new_1_a1 = nucleotides[n1_idx]._a2
-                new_1_a3 = nucleotides[n1_idx]._a3
-                new_2_a1 = nucleotides[n2_idx]._a2
-                new_2_a3 = nucleotides[n2_idx]._a3
+                new_1_a1 = nucleotides[n1_idx]._a1
+                new_1_a3 = nucleotides[n1_idx]._a3 
+                new_2_a1 = nucleotides[n2_idx]._a1
+                new_2_a3 = nucleotides[n2_idx]._a3 
                 
                 # create new nucleotides 
                 new_1_nt = Nucleotide(
@@ -1656,7 +1652,7 @@ def staple_1_and_write_to_file(route: LatticeRoute, name_of_file: str, domain_si
     # staple_1.fill_lattice_with_single_domains()
 
     print("staple_1_and_write_to_file(): Adding staples to a container...")
-    container_1 = staple_1.generate_container()
+    container_1 = staple_1.generate_origami()
     
     print("staple_1_and_write_to_file(): Adding staples to an oxDNA system...")
     system_1 = container_1.system()
@@ -1682,7 +1678,7 @@ def param_study_0002():
     
     staple_2 = StaplingAlgorithm2(route)
     staple_2.plot_lattice()
-    container_2 = staple_2.generate_container()
+    container_2 = staple_2.generate_origami()
     system_2 = container_2.system()
     # system_2.write_oxDNA("half")
 
@@ -1699,16 +1695,16 @@ def main(width: float=8, name: str="Stapled Scaffold Schematic"):
     [3.,3.,0.],[2.,3.,0.],[2.,4.,0.],[3.,4.,0.],[3.,5.,0.],[0.,5.,0.],[0.,4.,0.],[1.,4.,0.],
     [1.,3.,0.],[0.,3.,0.], [0.,2.,0.],[1.,2.,0.],[1.,1.,0.],[0.,1.,0.]
     ])
-    square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,2.5,1])
+    square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,12.5,1])
     triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
 
-    route = generate(square*[width,5,1])
+    route = generate(square*[width,1,1])
     # staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
     # plot_staples(container)
     staple_2 = StaplingAlgorithm2(route)
     staple_2.plot_lattice(title=name)
-    container_2 = staple_2.generate_container()
+    container_2 = staple_2.generate_origami()
     system_2 = container_2.system()
     # system_2.write_oxDNA(name)
     return staple_2, container_2
@@ -1726,7 +1722,8 @@ def param_study_0006():
     stapled_scaffold, staple_container = main(width = 4)
     configuration_container = ConfGenAddUnpairedNuc(
         staple_strands = staple_container.staples,
-        staple_base_class = stapled_scaffold)
+        staple_base_class = stapled_scaffold
+        )
     
     origami_0 = deepcopy(configuration_container)
     origami_1 = deepcopy(configuration_container)
@@ -1775,7 +1772,7 @@ def param_study_000X():
         stapled_route.plot_lattice(title=title)
         # Export as oxDNA
         name = f"twist-{twist:.2f}"
-        container = stapled_route.generate_container()
+        container = stapled_route.generate_origami()
         system = container.system()
         system.write_oxDNA(name)
 
@@ -1787,9 +1784,35 @@ def staple_3():
     route = generate(rectangle)
     StaplingAlgorithm3(route, middle_staples=2)
 
-if __name__ == "__main__":
-    container = param_study_0006()
+def for_presentation():
+    # Define Shape
+    square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,12.5,1])
+    polygon = BoundaryPolygon(vertices = square*[4,1,1]) # square width 4.0
     
+    # Generate Scaffold
+    lattice = polygon.dna_snake(grid_size = [0.34, 2])
+    scaffold = lattice.route()
+    scaffold_system = scaffold.system()
+    scaffold_system.write_oxDNA("scaffold_only")
+
+    # Generate Staples
+    staples = StaplingAlgorithm2(scaffold)
+    origami = staples.generate_origami()
+    origami_system = origami.system()
+    origami_system.write_oxDNA("full_origami")
+
+    # Generate Additional Configurations
+    origami_container = ConfGenAddUnpairedNuc(origami.staples, origami.base_class)
+    new_origami_1 = deepcopy(origami_container)
+    new_origami_2 = deepcopy(origami_container)
+    new_origami_1.add_to_scaffold(1)
+    new_origami_2.add_to_scaffold(2)
+    new_origami_1.configuration.output_files("extra_nt_scaffold")
+    new_origami_2.configuration.output_files("extra_2nt_scaffold")
+
+if __name__ == "__main__":
+    param_study_0006()
+
     # route = generate(stacked_I*17)
     # system, container = staple_and_write_to_file(route, "stacked_I")
     # plot_staples(container)
