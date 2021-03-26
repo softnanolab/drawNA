@@ -6,7 +6,7 @@ from typing import Tuple
 class Node():
     id_iter = itertools.count(start=-2, step=1) #not counting properly
     def __init__(self, position=[0,0,0], dsDNA=True):
-        self.position = np.asarray(position)
+        self.position = np.asarray(position) * 1E-9
         self.index = next(self.id_iter)
         self.connectors = []
         self.dsDNA = dsDNA
@@ -77,39 +77,86 @@ class System():
         return
     
     @property
-    def energy(self):
+    def energy(self, T=298):
         total_energy = 0
+        K_B = 1.38065E-23 #nm2
+        kbT = K_B*T
+        
         def calculate_bond_energy(r1, r2, k, L_0): #pos vectors r1 and r2 of nodes 1 and 2             
             bond_energy = (1/2) * k * (np.linalg.norm(r2-r1) - L_0)**2
             return bond_energy
-        for i in range(len(self.nodes)-1):
-            r1 = self.nodes[i].position
-            r2 = self.nodes[i+1].position
-            
-            if self.nodes[i].dsDNA and self.nodes[i+1].dsDNA:
-                k = 2.94
-                L_0 = 0.34 #nm
-                
-            elif self.nodes[i].dsDNA == False and self.nodes[i+1].dsDNA == False:
-                k = 2.352
-                L_0 = 0.64
-            
-            elif (self.nodes[i].dsDNA and self.nodes[i+1].dsDNA == False) or (self.nodes[i].dsDNA == False and self.nodes[i+1].dsDNA):
-                k = np.sqrt(2.94 * 2.352) # geometric mean = 2.63
-                L_0 = (0.34 + 0.64) / 2 # L_0 mean = 0.49
-            
-            total_energy += calculate_bond_energy(r1, r2, k, L_0)
         
-        # Orientation node contributions
-        for i in range(len(self.nodes)):
-            r1 = self.nodes[i].position
-            r2 = r1
-            r2[0] = r2[0]+ 0.15
-            k = 20.8
-            L_0 = 0.15
+        def calculate_angular_energy(r1, r2, r3, k, theta_0):
+            v1_u = (r2-r1)/np.linalg.norm(r2-r1)
+            v2_u = (r3-r2)/np.linalg.norm(r3-r2)
+            theta = np.arccos(np.dot(v1_u, v2_u))
+            angular_energy = (1/2) * k * (theta - theta_0) ** 2
+            return angular_energy
+        
+        for i in range(len(self.nodes)-2):
+            n1 = self.nodes[i]
+            n2 = self.nodes[i+1]
+            n3 = self.nodes[i+2]
             
-            total_energy += calculate_bond_energy(r1, r2, k, L_0)
-             
+            r1 = n1.position
+            r2 = n2.position
+            r3 = n3.position
+            
+            if n1.dsDNA and n2.dsDNA:
+                k = 2.94
+                L_0 = 0.34E-9 #m
+                total_energy += calculate_bond_energy(r1, r2, k, L_0)
+                
+            elif n1.dsDNA == False and n2.dsDNA == False:
+                k = 2.352
+                L_0 = 0.64E-9
+                total_energy += calculate_bond_energy(r1, r2, k, L_0)
+                
+            elif (n1.dsDNA and n2.dsDNA == False) or (n1.dsDNA == False and n2.dsDNA):
+                k = np.sqrt(2.94 * 2.352) # geometric mean = 2.63
+                L_0 = ((0.34 + 0.64) / 2) * 10**-9 # L_0 mean = 0.49 nm
+                total_energy += calculate_bond_energy(r1, r2, k, L_0)
+            
+            if n1.dsDNA and n2.dsDNA and n3.dsDNA:
+                theta_0 = 0
+                k = 110.2 * kbT
+                total_energy += calculate_angular_energy(r1, r2, r3, k, theta_0)
+
+            elif (n1.dsDNA == False and n2.dsDNA == False and n3.dsDNA == False) or (n1.dsDNA and n2.dsDNA == False):
+                theta_0 = 0
+                k = 1.675 * kbT                      
+                total_energy += calculate_angular_energy(r1, r2, r3, k, theta_0)
+                
+            if n1.dsDNA:
+                r3 = r2
+                r2 = r1
+                r1 = r1 + np.array([0.15, 0, 0])                            
+                k = 13.755 * kbT
+                theta_0 = np.pi/2
+                total_energy += calculate_angular_energy(r1, r2, r3, k, theta_0)
+                L_0 = 0.15E-9
+                k = 20.8
+                total_energy += calculate_bond_energy(r1, r2, k, L_0)
+            
+            if n3 == self.nodes[-1]:
+                n1 = n2
+                n2 = n3
+                r1 = r2
+                r2 = r3
+                
+                if n1.dsDNA and n2.dsDNA:
+                    k = 2.94
+                    L_0 = 0.34E-9 #nm
+                    total_energy += calculate_bond_energy(r1, r2, k, L_0)
+                elif n1.dsDNA == False and n2.dsDNA == False:
+                    k = 2.352
+                    L_0 = 0.64E-9
+                    total_energy += calculate_bond_energy(r1, r2, k, L_0)
+                elif (n1.dsDNA and n2.dsDNA == False) or (n1.dsDNA == False and n2.dsDNA):
+                    k = np.sqrt(2.94 * 2.352) # geometric mean = 2.63
+                    L_0 = ((0.34 + 0.64) / 2) * 10**-9 # L_0 mean = 0.49
+                    total_energy += calculate_bond_energy(r1, r2, k, L_0)
+                    
         return total_energy
     
     def minimise(self, **kwargs):
@@ -119,13 +166,14 @@ class System():
         initial_pos = self.to_array()
         solution = scipy.optimize.minimize(_e, initial_pos, **kwargs)
        
+        ''' 
         bond_lengths = []
         for i in range((len(solution.x)//4)):
             node_1 = np.array([solution.x[3*i], solution.x[3*i+1], solution.x[3*i+2]])
             node_2 = np.array([solution.x[3*i+3], solution.x[3*i+4], solution.x[3*i+5]])
             bond_lengths.append(np.linalg.norm(node_2-node_1))
         print(bond_lengths)  
-        
+        '''
         return 
     
     
@@ -137,16 +185,17 @@ connectors = [bond_0, bond_1, bond_2]
 example_1 = System(nodes, connectors)
 example_1.minimise()
 
+'''
 node_0.dsDNA, node_1.dsDNA, node_2.dsDNA, node_3.dsDNA = False, False, False, False
 
 ssDNA_example_1 = System(nodes, connectors) 
-ssDNA_example_1.minimise()
+#ssDNA_example_1.minimise()
 
 node_1.dsDNA, node_2.dsDNA = True, True
 
 mixed_example_1 = System(nodes, connectors)
-mixed_example_1.minimise()
-
+#mixed_example_1.minimise()
+'''
 
 def main():
     return
