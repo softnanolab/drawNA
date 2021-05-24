@@ -7,6 +7,8 @@ from drawNA.oxdna.nucleotide import POS_BASE, SHIFT_BASE
 
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable, axes_size
+from matplotlib.ticker import MultipleLocator
 import pandas as pd
 
 from copy import deepcopy
@@ -353,12 +355,13 @@ class StapleBaseClass:
         fig, ax = plt.subplots(figsize=(15,15))
         # Set Colours
         vals = np.linspace(0,1,256)
-        np.random.shuffle(vals)
-        cmap = plt.cm.colors.ListedColormap(plt.cm.gnuplot(vals))
+        # np.random.shuffle(vals)
+        # cmap = plt.cm.colors.ListedColormap(plt.cm.gnuplot(vals))
+        cmap = plt.cm.colors.ListedColormap(plt.cm.viridis(vals))
         cmap.set_bad(color='black')
         # Create plot
-        plt.imshow(lattice_2D, cmap=cmap,aspect = 2)
-
+        im = ax.imshow(lattice_2D, cmap=cmap,aspect = 2)
+          
         # Add text overlay
         if show_staple_nodes == False:
             lattice_crossovers = self.lattice[:,:, 1]
@@ -370,7 +373,7 @@ class StapleBaseClass:
                         text = "↑"#"▲""U"
                     else:
                         text = ""
-                    ax.text(j, i, text,ha="center", va="center", color="w")
+                    ax.text(j, i, text,ha="center", va="center", color="w", fontsize=20)
         else:
             lattice_crossovers = self.lattice[:,:, 2]
             for i in range(lattice_crossovers.shape[0]):
@@ -383,14 +386,47 @@ class StapleBaseClass:
                         text = "T"#"▲""U"
                     else:
                         text = ""
-                    ax.text(j, i, text,ha="center", va="center", color="w")
+                    ax.text(j, i, text,ha="center", va="center", color="w", fontsize=20)
 
         # Make it look a little prettier
-        plt.gca().set_aspect(aspect)
-        plt.gca().invert_yaxis()
+        ax = plt.gca()
+        ax.set_aspect(aspect)
+        ax.invert_yaxis()
         ax.set_title(title)
         ax.set_xlabel("No. of nucleotides")
+        ax.xaxis.set_minor_locator(MultipleLocator(1))
         ax.set_ylabel("Scaffold row strands")
+
+
+        # Add For Staples Colorbar
+        # def discrete_matshow(data, cmap, name, shrink_val: float, max_data, min_data, space_between_ints):
+        #     #get discrete colormap
+
+        #     cmap = plt.get_cmap('viridis', int(max_data-min_data+1))        
+        #     cmap.set_bad(color='black')
+        #         # set limits .5 outside true range
+        #     mat = plt.matshow(data,cmap=cmap,vmin = min_data-.5, vmax = max_data+.5)
+        #     #tell the colorbar to tick at integers
+        #     cax = ax.figure.colorbar(
+        #         mat, 
+        #         fraction=0.046, 
+        #         pad=0.04, 
+        #         shrink = shrink_val, 
+        #         ticks=np.arange(min_data,max_data+1,space_between_ints))
+            
+        #     cax.ax.set_ylabel(name, rotation = "90")
+
+        # if layer == 0: # NOTE TO SELF doesn't work for non straight edges shapes...
+        #     max_data = np.max(lattice_2D)
+        #     min_data = np.min(lattice_2D)
+        #     discrete_matshow(lattice_2D, cmap, "Staple ID", 0.43, max_data, min_data, 1)
+        # elif layer == 3:
+        #     max_data = 1930.0 #np.max(data)
+        #     min_data = 0.0 #np.min(data)
+        #     discrete_matshow(lattice_2D, cmap, "Scaffold Nucleotide ID", 0.95, max_data, min_data, max_data)
+            
+        # Show
+        plt.rcParams['font.size'] = '22'  
         plt.show()
         return
 
@@ -582,11 +618,12 @@ class StaplingAlgorithm1(StapleBaseClass):
     """
     def __init__(self, scaffold, domain_size=14, crossover_threshold=0.956):
         super().__init__(scaffold, crossover_threshold)
+        self.plot_lattice(layer = 0, show_staple_nodes=False, title="Initialised Staple Framework waith crossovers")
         self.domain_size = domain_size
         print(f"StapleAlgorithm1: Generating side staples {self}")
         self.generate_side_staples()
         print(f"StapleAlgorithm1: Generating inside staples of single domain only {self}")
-        self.generate_inside_staples()
+        # self.generate_inside_staples()
     
     def generate_side_staples(self):
         """ Generates staple nodes for staples at the left and right edges of a scaffold
@@ -951,6 +988,8 @@ class StaplingAlgorithm2(StapleBaseClass):
     def __init__(self, scaffold, crossover_threshold=0.956):
         super().__init__(scaffold, crossover_threshold)
         self.verify_route_is_applicable()
+
+        self.plot_lattice(layer = 0, show_staple_nodes=False, title="Initialised Staple Framework with crossovers")
 
         self.L = self.Q1 = self.Q2 = self.Q3 = self.R = 0
         self.find_approx_crossover_indices()
@@ -1397,14 +1436,24 @@ class ConfGenSplitDoubleDomains(OrigamiContainer):
         Returns (oxDNA.Strand, oxDNA.Strand):
             a tuple of two single domained staples 
         """
+        # We want to ensure the direction has flipped... so we find the a3 direction
+        # This will be either 1.0 or -1.0
+        # If it starts at 1.0, we are looking for the nucleotide where the a3 direction is -1.0
+        # and vice versa
 
         # Find index of first nt in the second domain of the staple
         i = 0
-        hello = staple_to_split.nucleotides[i]._a3[0]
+        hello = 0
+        target = -staple_to_split.nucleotides[i]._a3[0] # negative of result, i.e. 1 -> -1, -1 -> 1
 
-        while not hello == 1.0:
+        while not hello == target:
             i += 1
             hello = staple_to_split.nucleotides[i]._a3[0]
+        
+        # if i == 0:
+        #     logger.info(f"{[(nt._a1[0], nt._a2[0], nt._a3[0]) for nt in staple_to_split.nucleotides]}")
+        
+        logger.info(f"THIS STAPLE IS BEING CUT AT INDEX {i} and its length is {len(staple_to_split.nucleotides)}")
 
         # Define new single domain strands
         strand_1 = Strand(nucleotides=staple_to_split.nucleotides[:i])
@@ -1631,7 +1680,7 @@ class ConfGenAddUnpairedNuc(OrigamiContainer):
         return
 
 ## Copied from protocols/lattice-route/DNA_snake.py
-def generate(polygon_vertices: np.ndarray, title: str = "Generate()", bp_per_turn: float = 10.45) -> LatticeRoute:
+def generate_scaffold(polygon_vertices: np.ndarray, title: str = "generate_scaffold()", bp_per_turn: float = 10.45) -> LatticeRoute:
     print('Running Generate Function')
     print(f'Creating polygon from {len(polygon_vertices)} vertices')
     polygon = BoundaryPolygon(polygon_vertices)
@@ -1647,34 +1696,54 @@ def generate(polygon_vertices: np.ndarray, title: str = "Generate()", bp_per_tur
 
 ## Protocol functions
 def staple_1_and_write_to_file(route: LatticeRoute, name_of_file: str, domain_size = 15):
-    print("Class StaplingAlgorithm1: Generating side staples")
-    staple_1 = StaplingAlgorithm1(route, domain_size = domain_size)
-    # staple_1.fill_lattice_with_single_domains()
+    logger.info("Class StaplingAlgorithm1: Generating side staples")
+    with_staples_1 = StaplingAlgorithm1(route, domain_size = domain_size)
 
-    print("staple_1_and_write_to_file(): Adding staples to a container...")
-    container_1 = staple_1.generate_origami()
+    with_staples_1.plot_lattice(title=name_of_file)
+
+    logger.info("staple_1_and_write_to_file(): Adding staples to a container...")
+    container_1 = with_staples_1.generate_origami()
     
-    print("staple_1_and_write_to_file(): Adding staples to an oxDNA system...")
+    logger.info("staple_1_and_write_to_file(): Adding staples to an oxDNA system...")
     system_1 = container_1.system()
     
-    # print("staple_1_and_write_to_file(): Writing `.top` and `.conf` files")
-    # system_1.write_oxDNA(prefix = name_of_file)
-    return system_1, container_1
+    logger.info("staple_1_and_write_to_file(): Writing `.top` and `.conf` files")
+    system_1.write_oxDNA(prefix = name_of_file)
+    return with_staples_1, container_1
+
+def staple_2_and_write_to_file(route: LatticeRoute, name_of_file: str):
+    logger.info("Class StaplingAlgorithm2: Generating 4 Columns of Staples")
+    staple_2 = StaplingAlgorithm2(route)
+    
+    staple_2.plot_lattice(title=name_of_file)
+    
+    logger.info("staple_1_and_write_to_file(): Adding staples to a container...")
+    container_2 = staple_2.generate_origami()
+
+    logger.info("staple_1_and_write_to_file(): Adding staples to an oxDNA system...")
+    # system_2 = container_2.system()
+
+    logger.info("staple_1_and_write_to_file(): Writing `.top` and `.conf` files")
+    # system_2.write_oxDNA(name)
+    return staple_2, container_2
 
 def plot_staples(staples: OrigamiContainer):
     if type(staples) == OrigamiContainer:
         staples = staples.base_class
 
     print("Plotting Staples with start, crossover and terminal points labelled")
-    staples.plot_lattice(layer=0, show_staple_nodes=True)
+    staples.plot_lattice(layer=0, show_staple_nodes=True, title="Layer 0 with start, crossover and terminal points labelled")
     print("Plotting Staples with scaffold crossover points labelled")
-    staples.plot_lattice(layer=0, show_staple_nodes=False)
+    staples.plot_lattice(layer=0, show_staple_nodes=False, title="Layer 0 with scaffold crossover points labelled")
+    staples.plot_lattice(layer=1, show_staple_nodes=False, title="Layer 1 with scaffold crossover points labelled")
+    staples.plot_lattice(layer=2, show_staple_nodes=False, title="Layer 1 with scaffold crossover points labelled")
+    staples.plot_lattice(layer=3, show_staple_nodes=False, title="Layer 1 with scaffold crossover points labelled")
 
 def param_study_0002():
     """ A parameter study looking at how the change of a double domain to single domain affects the structure """
     square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,2.5,1])
     rectangle = square*[8,5,1]
-    route = generate(rectangle)
+    route = generate_scaffold(rectangle)
     
     staple_2 = StaplingAlgorithm2(route)
     staple_2.plot_lattice()
@@ -1688,7 +1757,37 @@ def param_study_0002():
     configgen.write_to_file(name = "batch1", root = ROOT) 
     return staple_2, container_2
 
-def main(width: float=8, name: str="Stapled Scaffold Schematic"):
+def param_study_0002_but_square():
+    """ A parameter study looking at how the change of a double domain to single domain affects the structure """
+    
+    stapled_scaffold, staple_container = generate_origami_square(width = 4)
+
+    configgen = ConfGenSplitDoubleDomains(staple_strands = staple_container.staples, staple_base_class = stapled_scaffold)
+    ROOT = "/".join(path.abspath(__file__).split("/")[:-1])
+    print(ROOT)
+    configgen.write_to_file(name = "square-removed_crossovers", root = ROOT) 
+    return stapled_scaffold, staple_container
+
+def generate_origami_square(width: float=8, name: str="Stapled Scaffold Schematic"):
+    ### Pick A Shape
+    square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,12.5,1])
+
+    ### Pick An Algorithm
+    # route = generate_scaffold(stacked_I*[12,8,8])
+    route = generate_scaffold(square*[width,1,1])
+    scaffold_system = route.system()
+    scaffold_system.write_oxDNA("scaffold_system")
+    # staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
+    # plot_staples(container)
+
+    staple_2, container_2 = staple_2_and_write_to_file(route, "square")
+    origami_system = container_2.system()
+    origami_system.write_oxDNA("origami_system")
+    plot_staples(container_2)
+    return staple_2, container_2
+
+def generate_origami_stacked_I(width: float=8, name: str="Stapled Scaffold Schematic"):
+    ### Pick A Shape
     hourglass = np.array([[0.,0.,0.],[4,6.,0.],[0,12,0],[12,12,0],[8,6.,0.],[12,0.,0.]])
     stacked_I = np.array([
     [0.,0.,0.],[3.,0.,0.],[3.,1.,0.],[2.,1.,0.], [2.,2.,0.],[3.,2.,0.],
@@ -1699,27 +1798,30 @@ def main(width: float=8, name: str="Stapled Scaffold Schematic"):
     triangle = np.array([[0,0,0],[5,10,0],[10,0,0]])
     trapREV = np.array([[0.,10.,0.],[2.5,4.,0.],[7.5,4.,0.],[10.,10.,0.]])
 
-    route = generate(square*[width,1,1])
-    # staple, container = staple_1_and_write_to_file(route, "square25", domain_size=25)
-    # plot_staples(container)
-    staple_2 = StaplingAlgorithm2(route)
-    staple_2.plot_lattice(title=name)
-    container_2 = staple_2.generate_origami()
-    system_2 = container_2.system()
-    # system_2.write_oxDNA(name)
-    return staple_2, container_2
+    ### Pick An Algorithm
+    route = generate_scaffold(stacked_I*[12,8,8])
+    scaffold_system = route.system()
+    scaffold_system.write_oxDNA("scaffold_system_stackedI")
+    staple, container = staple_1_and_write_to_file(route, "stacked_I", domain_size=25)
+    plot_staples(container)
+
+    # staple_2, container_2 = staple_2_and_write_to_file(route, "square")
+    # origami_system = container_2.system()
+    # origami_system.write_oxDNA("origami_system")
+    # plot_staples(container_2)
+    # return staple_2, container_2
 
 def param_study_0003():
     """ A study looking at the same staple architecture with varying aspect ratio"""
     for i in np.linspace(2,10,9):
         width = round(i,2)
         shape_name = "square-width-" + str(width)
-        staple_2, container_2 = main(width, shape_name)
+        staple_2, container_2 = generate_origami_square(width, shape_name)
 
 def param_study_0006():
     """ Adding 1 nt to all scaffold crossovers """
     # Make Square-width-4.0
-    stapled_scaffold, staple_container = main(width = 4)
+    stapled_scaffold, staple_container = generate_origami_square(width = 4)
     configuration_container = ConfGenAddUnpairedNuc(
         staple_strands = staple_container.staples,
         staple_base_class = stapled_scaffold
@@ -1764,7 +1866,7 @@ def param_study_000X():
     for helical_twist in np.arange(10.45,10.65,0.05):
         twist = round(helical_twist,2)
         # Make Scaffold
-        route = generate(square, bp_per_turn = twist)
+        route = generate_scaffold(square, bp_per_turn = twist)
         # Staple Scaffold
         stapled_route = StaplingAlgorithm2(route)
         # Plot
@@ -1781,7 +1883,7 @@ def param_study_000X():
 def staple_3():
     square = np.array([[0,0,0],[1,0,0],[1,1,0],[0,1,0]])*np.array([3.5,2.5,1])
     rectangle = square*[8,5,1]
-    route = generate(rectangle)
+    route = generate_scaffold(rectangle)
     StaplingAlgorithm3(route, middle_staples=2)
 
 def for_presentation():
@@ -1811,25 +1913,29 @@ def for_presentation():
     new_origami_2.configuration.output_files("extra_2nt_scaffold")
 
 if __name__ == "__main__":
-    param_study_0006()
+    param_study_0002()
 
-    # route = generate(stacked_I*17)
+    # param_study_0006()
+    # generate_origami_stacked_I()
+    # param_study_0002_but_square()
+
+    # route = generate_scaffold(stacked_I*17)
     # system, container = staple_and_write_to_file(route, "stacked_I")
     # plot_staples(container)
 
-    # route = generate(hourglass*10)
+    # route = generate_scaffold(hourglass*10)
     # system, container = staple_and_write_to_file(route, "hourglass")
     # plot_staples(container)
 
-    # route = generate(square*10)
+    # route = generate_scaffold(square*10)
     # system, container = staple_and_write_to_file(route, "square")
     # plot_staples(container)
 
-    # route = generate(trapREV*17)
+    # route = generate_scaffold(trapREV*17)
     # system, container = staple_and_write_to_file(route, "trapezium")
     # plot_staples(container)
 
-    # route = generate(square*2)
+    # route = generate_scaffold(square*2)
 
     # container = staple_and_write_to_file(route, "square25", domain_size=25)
     # plot_staples(container)
